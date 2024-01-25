@@ -1,8 +1,10 @@
 #include "button.h"
 
+#include "states/fileOps.h"
 #include "states/states.h"
 #include "display.h"
 #include "stm32f10x.h"
+#include "stm32f10x_gpio.h"
 
 uint8_t btnHistory[BUTTON_NUM];
 
@@ -10,9 +12,9 @@ uint8_t btnFalling[BUTTON_NUM];
 
 uint8_t counter = 0;
 
-extern char filenames[MAX_FILE_LIST_LENGTH][12];
+void onButtonUpClicked();
 
-extern uint8_t filenameBase;
+void onButtonDownClicked();
 
 void initKeys()
 {
@@ -27,28 +29,46 @@ void initKeys()
         btnHistory[i] = 1;
 }
 
+void setKeyState(Button btn, GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin)
+{
+    const uint8_t flag = GPIO_ReadInputDataBit(GPIOx, GPIO_Pin);
+    btnFalling[btn] = (flag < btnHistory[btn]);
+    btnHistory[btn] = flag;
+}
+
 void scanKeys()
 {
-    uint8_t flag_up = GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_4);
-    btnFalling[BUTTON_UP] = (flag_up < btnHistory[BUTTON_UP]);
-    btnHistory[BUTTON_UP] = flag_up;
+    setKeyState(BUTTON_UP, GPIOB, GPIO_Pin_4);
+    setKeyState(BUTTON_DOWN, GPIOB, GPIO_Pin_6);
 
-    uint8_t flag_down = GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_6);
-    btnFalling[BUTTON_DOWN] = (flag_down < btnHistory[BUTTON_DOWN]);
-    btnHistory[BUTTON_DOWN] = flag_down;
+    if(btnFalling[BUTTON_UP])
+        onButtonUpClicked();
+    if(btnFalling[BUTTON_DOWN])
+        onButtonDownClicked();
+}
 
-    if(btnFalling[BUTTON_UP]){
-        refreshScreen();
-        if(counter < 3) counter++;
-        else if(filenameBase + 4 < MAX_FILE_LIST_LENGTH && filenames[filenameBase + 4][0] != '\0'){
-            filenameBase++;
-        }
+void onButtonUpClicked()
+{
+    File_State* fileState = useFileState();
+
+    refreshScreen();
+
+    if(counter < 3) counter++;
+    else if(fileState->filenameBase + 4 < MAX_FILE_LIST_LENGTH && 
+            fileState->filenames[fileState->filenameBase + 4][0] != '\0')
+    {
+        fileState->filenameBase++;
     }
-    if(btnFalling[BUTTON_DOWN]){
-        refreshScreen();
-        if(counter > 0) counter--;
-        else if(filenameBase > 0){
-            filenameBase--;
-        }
+}
+
+void onButtonDownClicked()
+{
+    File_State* fileState = useFileState();
+
+    refreshScreen();
+
+    if(counter > 0) counter--;
+    else if(fileState->filenameBase > 0){
+        fileState->filenameBase--;
     }
 }

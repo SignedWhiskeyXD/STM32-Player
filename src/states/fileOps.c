@@ -1,11 +1,11 @@
 #include "fileOps.h"
 
-#include "FATFS/ff.h"
 #include <string.h>
 
-char filenames[MAX_FILE_LIST_LENGTH][12];
+#include "FATFS/ff.h"
+#include "states/fileOps.h"
 
-uint8_t filenameBase = 0;
+File_State ctx;
 
 void toLower(char* filename)
 {
@@ -13,6 +13,11 @@ void toLower(char* filename)
         if(filename[i] >= 65 && filename[i] <= 90)
             filename[i] += 32;
     }
+}
+
+File_State* useFileState()
+{
+    return &ctx;
 }
 
 MYERROR initSD()
@@ -36,8 +41,8 @@ void loadFiles()
         if(res != FR_OK || fileInfo.fname[0] == '\0' || index >= MAX_FILE_LIST_LENGTH) 
             break;
         
-        strcpy(filenames[index], fileInfo.fname);
-        toLower(filenames[index]);
+        strcpy(ctx.filenames[index], fileInfo.fname);
+        toLower(ctx.filenames[index]);
         
         ++index;
     }

@@ -14,3 +14,5 @@
 # eide template
 *.ept
 *.eide-template
+
+compile_commands.json

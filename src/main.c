@@ -28,50 +28,23 @@ void delay(int x)
     }
 }
 
-void timerInit()
+void initPlayer()
 {
-    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
-    
-    TIM_InternalClockConfig(TIM2);
-    
-    TIM_TimeBaseInitTypeDef timerDef;
-    timerDef.TIM_RepetitionCounter = 0;
-    timerDef.TIM_CounterMode = TIM_CounterMode_Up;
-    timerDef.TIM_ClockDivision = TIM_CKD_DIV1;
-    
-    timerDef.TIM_Prescaler = 7200 - 1;
-    timerDef.TIM_Period = 500 -1;
-    TIM_TimeBaseInit(TIM2, &timerDef);
+    initScreen();
 
-    TIM_ITConfig(TIM2, TIM_IT_Update, ENABLE);
+    initKeys();
+    initSD();
+    loadFiles();
 
-    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+    delay(5000);
     
-    NVIC_InitTypeDef nvicDef;
-    nvicDef.NVIC_IRQChannel = TIM2_IRQn;
-    nvicDef.NVIC_IRQChannelCmd = ENABLE;
-    nvicDef.NVIC_IRQChannelPreemptionPriority = 2;
-    nvicDef.NVIC_IRQChannelSubPriority = 1;
-    NVIC_Init(&nvicDef);
-    
-    TIM_Cmd(TIM2, ENABLE); 
+    setGlobalState(BORWSING_DIR);
+    refreshScreen();
 }
 
 int main()
 {
-    GPIO_InitTypeDef gpioDef;
-    RCC_APB2PeriphClockCmd(LED_PERIPH, ENABLE);
-    gpioDef.GPIO_Mode = GPIO_Mode_Out_PP;
-    gpioDef.GPIO_Pin = LED_PIN;
-    gpioDef.GPIO_Speed = GPIO_Speed_10MHz;
-    GPIO_Init(LED_PORT, &gpioDef);
-    OLED_Init();
-    timerInit();
-    initKeys();
-    
-    initSD();
-    loadFiles();
-    refreshScreen();
+    initPlayer();
 
     while (1)
     {
