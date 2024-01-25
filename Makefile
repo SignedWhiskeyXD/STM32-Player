@@ -37,7 +37,7 @@ ASFLAGS		+= $(INC_DIR)
 CCFLAGS     += -DSTM32F10X_MD -DUSE_STDPERIPH_DRIVER
 
 # C源文件与启动文件
-SRC_DIRS	:= src src/status src/FATFS src/sdcard src/oled \
+SRC_DIRS	:= src src/states src/FATFS src/sdcard src/oled \
 			   hal/STM32F10x_StdPeriph_Driver hal/STM32F10x_StdPeriph_Driver/src
 SOURCE		:= $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.c))
 SOURCE_ASM	+= ./src/startup_stm32f10x_md.s
@@ -78,12 +78,10 @@ $(BUILD_DIR)/%.o: %.s
 
 # 清理项
 clean:
-	rm -f $(C_OBJS) $(ASM_OBJS)
+	rm -rf $(BUILD_DIR)
 	@echo "Clean done"
 
 cleanAll:
-	rm -f $(TARGET_HEX)
-	rm -f $(TARGET_BIN)
-	rm -f $(TARGET_ELF)
-	rm -f $(C_OBJS) $(ASM_OBJS)
+	rm -f $(TARGET_HEX) $(TARGET_ELF) $(TARGET_BIN)
+	rm -rf $(BUILD_DIR)
 	@echo "Cleaned All"

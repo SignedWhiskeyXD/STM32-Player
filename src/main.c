@@ -11,8 +11,8 @@
 
 #include "stm32f10x.h"
 #include "oled/OLED.h"
-#include "fileOps.h"
-#include "status/button.h"
+#include "states/states.h"
+#include "button.h"
 #include "display.h"
 
 #define LED_PERIPH RCC_APB2Periph_GPIOA
