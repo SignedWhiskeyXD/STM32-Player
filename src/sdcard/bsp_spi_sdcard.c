@@ -44,7 +44,7 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
-#include "./sdcard/bsp_spi_sdcard.h"
+#include "bsp_spi_sdcard.h"
 
 //记录卡的类型
 uint8_t  SD_Type = SD_TYPE_NOT_SD;	//存储卡的类型

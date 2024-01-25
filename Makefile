@@ -10,11 +10,12 @@ TARGET_HEX              := $(OUTPUT_DIR)/$(PROJECT).hex
 OBJCPFLAGS_ELF_TO_BIN    = -Obinary
 OBJCPFLAGS_ELF_TO_HEX    = -Oihex
 
-# 头文件搜索路径
-INC_DIR     := -I./src -I./lib/cmsis -I./hal/STM32F10x_StdPeriph_Driver -Ihal/STM32F10x_StdPeriph_Driver/inc
-
 # GNU工具链路径
 TOOLCHAIN_DIR= D:/dev/Embedded/arm-gnu-toolchain-13.2.Rel1-mingw-w64-i686-arm-none-eabi
+
+# 头文件搜索路径
+INC_DIR     := -I./src -I./lib/cmsis -I./hal/STM32F10x_StdPeriph_Driver -Ihal/STM32F10x_StdPeriph_Driver/inc \
+			   -I$(TOOLCHAIN_DIR)/arm-none-eabi/include
 
 # 链接脚本文件
 LDSCRIPT    := ./stm32f1x_64KB_flash.ld
@@ -36,7 +37,8 @@ ASFLAGS		+= $(INC_DIR)
 CCFLAGS     += -DSTM32F10X_MD -DUSE_STDPERIPH_DRIVER
 
 # C源文件与启动文件
-SRC_DIRS	:= src src/status src/FATFS src/sdcard hal/STM32F10x_StdPeriph_Driver hal/STM32F10x_StdPeriph_Driver/src
+SRC_DIRS	:= src src/status src/FATFS src/sdcard src/oled \
+			   hal/STM32F10x_StdPeriph_Driver hal/STM32F10x_StdPeriph_Driver/src
 SOURCE		:= $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.c))
 SOURCE_ASM	+= ./src/startup_stm32f10x_md.s
 

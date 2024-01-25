@@ -2,7 +2,7 @@
 
 #include "stm32f10x.h"
 #include "fileOps.h"
-#include "OLED.h"
+#include "oled/OLED.h"
 
 extern char filenames[MAX_FILE_LIST_LENGTH][12];
 

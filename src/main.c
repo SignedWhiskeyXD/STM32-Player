@@ -10,7 +10,7 @@
 */
 
 #include "stm32f10x.h"
-#include "OLED.h"
+#include "oled/OLED.h"
 #include "fileOps.h"
 #include "status/button.h"
 #include "display.h"

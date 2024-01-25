@@ -1,7 +1,7 @@
 #include "fileOps.h"
 
 #include "FATFS/ff.h"
-#include "string.h"
+#include <string.h>
 
 char filenames[MAX_FILE_LIST_LENGTH][12];
 
@@ -18,7 +18,8 @@ void toLower(char* filename)
 MYERROR initSD()
 {
     FATFS fs;
-    if(f_mount(&fs, "0:", 1) != FR_OK)
+    FRESULT res = f_mount(&fs, "0:", 1);
+    if(res != FR_OK)
         return SD_FATFS_MOUNT_ERROR;
     return OPERATION_SUCCESS;
 }
