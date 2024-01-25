@@ -1,5 +1,6 @@
 # dot files
 .vscode
+.cache
 /.settings
 /.eide/log
 /.eide.usr.ctx.json

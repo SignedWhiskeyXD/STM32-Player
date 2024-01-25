@@ -1,6 +1,6 @@
 #include "fileOps.h"
 
-#include "ff.h"
+#include "FATFS/ff.h"
 #include "string.h"
 
 char filenames[MAX_FILE_LIST_LENGTH][12];
