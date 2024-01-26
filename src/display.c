@@ -4,8 +4,6 @@
 #include "states/states.h"
 #include "oled/OLED.h"
 
-extern uint8_t counter;
-
 uint8_t shouldRefresh = 1;
 
 void initScreen()
@@ -56,7 +54,7 @@ void showDirectoryBrowsing()
 
     OLED_Clear();
     for(uint8_t i = 0; i < 4; ++i){
-        OLED_ShowChar(i + 1, 1, i == counter ? '>' : ' ');
+        OLED_ShowChar(i + 1, 1, i == fileState->offset ? '>' : ' ');
 
         OLED_ShowString(i + 1, 2, fileState->filenames[fileState->filenameBase + i]);
     }
@@ -70,15 +68,6 @@ void TIM2_IRQHandler()
         TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
         return;
     }
-    
-    // File_State* fileState = useFileState();
-
-    // OLED_Clear();
-    // for(uint8_t i = 0; i < 4; ++i){
-    //     OLED_ShowChar(i + 1, 1, i == counter ? '>' : ' ');
-
-    //     OLED_ShowString(i + 1, 2, fileState->filenames[fileState->filenameBase + i]);
-    // }
 
     switch (getGlobalState()) {
         case PLAYER_START_UP:

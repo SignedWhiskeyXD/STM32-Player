@@ -3,7 +3,6 @@
 #include <string.h>
 
 #include "FATFS/ff.h"
-#include "states/fileOps.h"
 
 File_State ctx;
 
@@ -45,5 +44,24 @@ void loadFiles()
         toLower(ctx.filenames[index]);
         
         ++index;
+    }
+}
+
+void moveFilePointer(int8_t delta)
+{
+    if (delta == 0) return;
+
+    if (delta > 0) {
+        if (ctx.offset < 3) {
+            ctx.offset++;
+        } else if (ctx.filenameBase + 4 < MAX_FILE_LIST_LENGTH &&
+                   ctx.filenames[ctx.filenameBase + 4][0] != '\0') {
+            ctx.filenameBase++;
+        }
+    } else {
+        if(ctx.offset > 0) ctx.offset--;
+        else if(ctx.filenameBase > 0){
+            ctx.filenameBase--;
+        }
     }
 }

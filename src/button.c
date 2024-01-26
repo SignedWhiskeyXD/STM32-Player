@@ -1,16 +1,12 @@
 #include "button.h"
 
-#include "states/fileOps.h"
 #include "states/states.h"
 #include "display.h"
 #include "stm32f10x.h"
-#include "stm32f10x_gpio.h"
 
 uint8_t btnHistory[BUTTON_NUM];
 
 uint8_t btnFalling[BUTTON_NUM];
-
-uint8_t counter = 0;
 
 void onButtonUpClicked();
 
@@ -49,26 +45,24 @@ void scanKeys()
 
 void onButtonUpClicked()
 {
-    File_State* fileState = useFileState();
-
-    refreshScreen();
-
-    if(counter < 3) counter++;
-    else if(fileState->filenameBase + 4 < MAX_FILE_LIST_LENGTH && 
-            fileState->filenames[fileState->filenameBase + 4][0] != '\0')
-    {
-        fileState->filenameBase++;
+    switch (getGlobalState()) {
+        case BORWSING_DIR:
+            refreshScreen();
+            moveFilePointer(1);
+            break;
+        default:
+            break;
     }
 }
 
 void onButtonDownClicked()
 {
-    File_State* fileState = useFileState();
-
-    refreshScreen();
-
-    if(counter > 0) counter--;
-    else if(fileState->filenameBase > 0){
-        fileState->filenameBase--;
+    switch (getGlobalState()) {
+        case BORWSING_DIR:
+            refreshScreen();
+            moveFilePointer(-1);
+            break;
+        default:
+            break;
     }
 }

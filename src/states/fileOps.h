@@ -3,6 +3,7 @@
 
 #include "stm32f10x.h"
 #include "myError.h"
+#include <stdint.h>
 
 #define MAX_FILE_LIST_LENGTH 16
 
@@ -13,6 +14,8 @@ typedef struct {
 
     // 目录项显示的起始索引
     uint8_t filenameBase;
+
+    uint8_t offset;
 } File_State;
 
 File_State* useFileState();
@@ -20,5 +23,7 @@ File_State* useFileState();
 MYERROR initSD();
 
 void loadFiles();
+
+void moveFilePointer(int8_t delta);
 
 #endif
