@@ -12,6 +12,8 @@ typedef struct {
     // 当前已读取的目录文件名
     char filenames[MAX_FILE_LIST_LENGTH][13];
 
+    uint8_t totalFiles;
+
     // 目录项显示的起始索引
     uint8_t filenameBase;
 

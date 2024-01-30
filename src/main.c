@@ -14,6 +14,8 @@
 #include "states/states.h"
 #include "button.h"
 #include "display.h"
+#include "vs1053/VS1053.h"
+#include "SysTick/bsp_SysTick.h"
 
 void delay(int x)
 {
@@ -28,6 +30,7 @@ void initPlayer()
 {
     initScreen();
     initKeys();
+    SysTick_Init();
 
     MYERROR error = initSD();
     if(error != OPERATION_SUCCESS){
@@ -36,6 +39,10 @@ void initPlayer()
         return;
     }
     loadFiles();
+    
+    VS_Init();
+    VS_HD_Reset();
+	VS_Soft_Reset();
 
     delay(5000);
     

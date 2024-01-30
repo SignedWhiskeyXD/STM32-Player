@@ -4,6 +4,7 @@
 typedef enum {
     BUTTON_UP,
     BUTTON_DOWN,
+    BUTTON_PLAY,
     BUTTON_NUM
 } Button;
 

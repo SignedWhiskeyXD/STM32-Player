@@ -17,7 +17,8 @@
             "*.c++": "cpp",
             "*.cpp": "cpp",
             "*.cxx": "cpp",
-            "*.cc": "cpp"
+            "*.cc": "cpp",
+            "SPEC_REW.H": "cpp"
         },
         "files.autoGuessEncoding": true,
         "C_Cpp.default.configurationProvider": "cl.eide",

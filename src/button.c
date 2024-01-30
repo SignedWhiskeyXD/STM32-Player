@@ -1,6 +1,7 @@
 #include "button.h"
 
 #include "states/states.h"
+#include "vs1053/VS1053.h"
 #include "display.h"
 #include "stm32f10x.h"
 
@@ -12,12 +13,14 @@ void onButtonUpClicked();
 
 void onButtonDownClicked();
 
+void onButtonPlayClicked();
+
 void initKeys()
 {
     GPIO_InitTypeDef gpioDef;
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
     gpioDef.GPIO_Mode = GPIO_Mode_IPU;
-    gpioDef.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7;
+    gpioDef.GPIO_Pin = GPIO_Pin_5 | GPIO_Pin_6 | GPIO_Pin_7;
     gpioDef.GPIO_Speed = GPIO_Speed_10MHz;
     GPIO_Init(GPIOB, &gpioDef);
 
@@ -36,11 +39,14 @@ void scanKeys()
 {
     setKeyState(BUTTON_UP, GPIOB, GPIO_Pin_6);
     setKeyState(BUTTON_DOWN, GPIOB, GPIO_Pin_7);
+    setKeyState(BUTTON_PLAY, GPIOB, GPIO_Pin_5);
 
     if(btnFalling[BUTTON_UP])
         onButtonUpClicked();
     if(btnFalling[BUTTON_DOWN])
         onButtonDownClicked();
+    if(btnFalling[BUTTON_PLAY])
+        onButtonPlayClicked();
 }
 
 void onButtonUpClicked()
@@ -61,6 +67,17 @@ void onButtonDownClicked()
         case BORWSING_DIR:
             refreshScreen();
             moveFilePointer(-1);
+            break;
+        default:
+            break;
+    }
+}
+
+void onButtonPlayClicked()
+{
+    switch (getGlobalState()) {
+        case BORWSING_DIR:
+            vs1053_player_song("0:TestFile.mp3");
             break;
         default:
             break;
