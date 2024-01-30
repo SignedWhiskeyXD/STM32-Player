@@ -1,5 +1,6 @@
 #include "display.h"
 
+#include "myError.h"
 #include "stm32f10x.h"
 #include "states/states.h"
 #include "oled/OLED.h"
@@ -44,7 +45,6 @@ void refreshScreen()
 
 void showStartUp()
 {
-    OLED_Clear();
     OLED_ShowString(1, 1, "Starting");
 }
 
@@ -52,11 +52,22 @@ void showDirectoryBrowsing()
 {
     File_State* fileState = useFileState();
 
-    OLED_Clear();
     for(uint8_t i = 0; i < 4; ++i){
         OLED_ShowChar(i + 1, 1, i == fileState->offset ? '>' : ' ');
 
         OLED_ShowString(i + 1, 2, fileState->filenames[fileState->filenameBase + i]);
+    }
+}
+
+void showError()
+{
+    switch (getLastError()) {
+        case SD_FATFS_MOUNT_ERROR:
+            OLED_ShowString(1, 1, "SD Mount Failed");
+            break;
+
+        default:
+            break;
     }
 }
 
@@ -69,6 +80,7 @@ void TIM2_IRQHandler()
         return;
     }
 
+    OLED_Clear();
     switch (getGlobalState()) {
         case PLAYER_START_UP:
             showStartUp();
@@ -76,6 +88,10 @@ void TIM2_IRQHandler()
 
         case BORWSING_DIR:
             showDirectoryBrowsing();
+            break;
+
+        case PLAYER_ERROR:
+            showError();
             break;
     
         default:

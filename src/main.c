@@ -9,15 +9,11 @@
  * ************************************************
 */
 
+#include "myError.h"
 #include "stm32f10x.h"
-#include "oled/OLED.h"
 #include "states/states.h"
 #include "button.h"
 #include "display.h"
-
-#define LED_PERIPH RCC_APB2Periph_GPIOA
-#define LED_PORT GPIOA
-#define LED_PIN GPIO_Pin_1
 
 void delay(int x)
 {
@@ -31,15 +27,19 @@ void delay(int x)
 void initPlayer()
 {
     initScreen();
-
     initKeys();
-    initSD();
+
+    MYERROR error = initSD();
+    if(error != OPERATION_SUCCESS){
+        setLastError(error);
+        setGlobalState(PLAYER_ERROR);
+        return;
+    }
     loadFiles();
 
     delay(5000);
     
     setGlobalState(BORWSING_DIR);
-    refreshScreen();
 }
 
 int main()

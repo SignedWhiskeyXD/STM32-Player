@@ -1,5 +1,5 @@
 #include "states.h"
-#include "states/states.h"
+#include "display.h"
 
 GlobalState currentState = PLAYER_START_UP;
 
@@ -11,4 +11,5 @@ GlobalState getGlobalState()
 void setGlobalState(GlobalState newState)
 {
     currentState = newState;
+    refreshScreen();
 }

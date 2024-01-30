@@ -6,4 +6,8 @@ typedef enum {
     SD_FATFS_MOUNT_ERROR
 } MYERROR;
 
+MYERROR getLastError();
+
+void setLastError(MYERROR error);
+
 #endif
