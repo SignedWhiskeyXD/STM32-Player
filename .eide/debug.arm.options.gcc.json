@@ -10,7 +10,7 @@
     "c/cpp-compiler": {
         "language-c": "c11",
         "language-cpp": "c++14",
-        "optimization": "level-debug",
+        "optimization": "level-0",
         "warnings": "all-warnings",
         "C_FLAGS": "-ffunction-sections -fdata-sections",
         "CXX_FLAGS": "-ffunction-sections -fdata-sections"
@@ -19,7 +19,7 @@
         "ASM_FLAGS": "-ffunction-sections -fdata-sections"
     },
     "linker": {
-        "LD_FLAGS": "  -Wl,--gc-sections",
+        "LD_FLAGS": "-Wl,--gc-sections",
         "output-format": "elf",
         "LIB_FLAGS": "-lm"
     }

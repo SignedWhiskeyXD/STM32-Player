@@ -17,7 +17,7 @@ void initKeys()
     GPIO_InitTypeDef gpioDef;
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
     gpioDef.GPIO_Mode = GPIO_Mode_IPU;
-    gpioDef.GPIO_Pin = GPIO_Pin_4 | GPIO_Pin_6;
+    gpioDef.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7;
     gpioDef.GPIO_Speed = GPIO_Speed_10MHz;
     GPIO_Init(GPIOB, &gpioDef);
 
@@ -34,8 +34,8 @@ void setKeyState(Button btn, GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin)
 
 void scanKeys()
 {
-    setKeyState(BUTTON_UP, GPIOB, GPIO_Pin_4);
-    setKeyState(BUTTON_DOWN, GPIOB, GPIO_Pin_6);
+    setKeyState(BUTTON_UP, GPIOB, GPIO_Pin_6);
+    setKeyState(BUTTON_DOWN, GPIOB, GPIO_Pin_7);
 
     if(btnFalling[BUTTON_UP])
         onButtonUpClicked();

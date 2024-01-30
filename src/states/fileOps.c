@@ -6,9 +6,11 @@
 
 File_State ctx;
 
+TCHAR lfnBuffer[256];
+
 void toLower(char* filename)
 {
-    for(uint8_t i = 0; i < 12 && filename[i] != '\0'; ++i){
+    for(uint8_t i = 0; i < 13 && filename[i] != '\0'; ++i){
         if(filename[i] >= 65 && filename[i] <= 90)
             filename[i] += 32;
     }
@@ -31,19 +33,21 @@ MYERROR initSD()
 void loadFiles()
 {
     DIR dir;
-    f_opendir(&dir, "0:/");
+    FRESULT res = f_opendir(&dir, "0:/");
 
     FILINFO fileInfo;
-    uint8_t index = 0;
+    uint8_t idx = 0;
+    fileInfo.lfname = lfnBuffer;
+    fileInfo.lfsize = 256;
     while (1) {
-        FRESULT res = f_readdir(&dir, &fileInfo);
-        if(res != FR_OK || fileInfo.fname[0] == '\0' || index >= MAX_FILE_LIST_LENGTH) 
+        res = f_readdir(&dir, &fileInfo);
+        if(res != FR_OK || fileInfo.fname[0] == '\0' || idx >= MAX_FILE_LIST_LENGTH) 
             break;
         
-        strcpy(ctx.filenames[index], fileInfo.fname);
-        toLower(ctx.filenames[index]);
+        strcpy(ctx.filenames[idx], fileInfo.fname);
+        toLower(ctx.filenames[idx]);
         
-        ++index;
+        ++idx;
     }
 }
 
