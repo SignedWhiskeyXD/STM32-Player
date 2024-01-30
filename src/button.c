@@ -3,6 +3,7 @@
 #include "states/states.h"
 #include "vs1053/VS1053.h"
 #include "display.h"
+#include "player.h"
 #include "stm32f10x.h"
 
 uint8_t btnHistory[BUTTON_NUM];
@@ -77,7 +78,7 @@ void onButtonPlayClicked()
 {
     switch (getGlobalState()) {
         case BORWSING_DIR:
-            vs1053_player_song("0:TestFile.mp3");
+            playSelectedSong();
             break;
         default:
             break;

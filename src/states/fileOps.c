@@ -45,11 +45,11 @@ void loadFiles()
         res = f_readdir(&dir, &fileInfo);
         if(res != FR_OK || fileInfo.fname[0] == '\0' || idx >= MAX_FILE_LIST_LENGTH) 
             break;
-
-        if(!strstr(fileInfo.fname, ".MP3")) continue;
+        
+        toLower(fileInfo.fname);
+        if(!strstr(fileInfo.fname, ".mp3")) continue;
         
         strcpy(ctx.filenames[idx], fileInfo.fname);
-        toLower(ctx.filenames[idx]);
         ++idx;
     }
 
