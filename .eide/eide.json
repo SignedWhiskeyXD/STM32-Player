@@ -82,7 +82,7 @@
         "proType": "SWD",
         "resetMode": "default",
         "runAfterProgram": true,
-        "speed": "8000",
+        "speed": 4000,
         "address": "0x08000000",
         "elFile": "None",
         "optionBytes": ".eide/debug.st.option.bytes.ini",

@@ -15,22 +15,13 @@
 #include "button.h"
 #include "display.h"
 #include "vs1053/VS1053.h"
-#include "SysTick/bsp_SysTick.h"
-
-void delay(int x)
-{
-    for (int i = 0; i < x; i++)
-    {
-        for (int j = 0; j < 1000; j++)
-            __NOP();
-    }
-}
+#include "rtos/FreeRTOS.h"
+#include "rtos/task.h"
 
 void initPlayer()
 {
     initScreen();
     initKeys();
-    SysTick_Init();
 
     MYERROR error = initSD();
     if(error != OPERATION_SUCCESS){
@@ -43,19 +34,54 @@ void initPlayer()
     VS_Init();
     VS_HD_Reset();
 	VS_Soft_Reset();
-
-    delay(5000);
     
     setGlobalState(BORWSING_DIR);
+}
+
+TaskHandle_t taskCreationHandler;
+TaskHandle_t taskKeyScanHandler;
+TaskHandle_t taskScreenHandler;
+
+void taskKeyScan()
+{
+    while(1)
+    {
+        scanKeys();
+        vTaskDelay(20);
+    }
+}
+
+void taskScreenRefresh()
+{
+    while(1)
+    {
+        onScreenRefresh();
+        vTaskDelay(33);
+    }
+}
+
+void taskCreation()
+{
+    taskENTER_CRITICAL();
+
+    xTaskCreate(taskKeyScan, "TaskKeyScan", 512, NULL, 2, &taskKeyScanHandler);
+    xTaskCreate(taskScreenRefresh, "TaskScreen", 512, NULL, 3, &taskScreenHandler);
+
+    vTaskDelete(taskCreationHandler);
+
+    taskEXIT_CRITICAL();
 }
 
 int main()
 {
     initPlayer();
 
+    xTaskCreate(taskCreation, "TaskCreation", 512, NULL, 2, &taskCreationHandler);
+
+    vTaskStartScheduler();
+
     while (1)
     {
-        scanKeys();
-        delay(100);
+
     }
 }

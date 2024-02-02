@@ -1,4 +1,3 @@
-#include "bsp_SysTick.h"
 #include "VS1053.h"
 #include "flac.h"
 #include "string.h"
@@ -12,6 +11,17 @@ _vs1053_obj vsset =
         15,  // 高音提升 10.5dB
         0,   // 空间效果
 };
+
+void delay(int x)
+{
+    for (int i = 0; i < x; i++)
+    {
+        for (int j = 0; j < 1000; j++)
+            __NOP();
+    }
+}
+
+#define Delay_ms(x) delay(x * 10);
 
 /*******************************************************************************
  * Function Name  : SPI_FLASH_SendByte
@@ -150,7 +160,7 @@ u8 VS_HD_Reset(void)
     while (VS_DREQ_IN == 0 && retry < 200) // 等待DREQ为高
     {
         retry++;
-        Delay_us(50);
+        Delay_ms(1);
     };
     Delay_ms(20);
     if (retry >= 200)
@@ -530,55 +540,5 @@ void VS_Set_All(void)
 }
 /*--------------  以上是VS1053驱动部分 -------------------------*/
 /*--------------  下面开始是音乐播放部分 -------------------------*/
-#include "ff.h"
-/*
-************************************************************************
-*						  FatFs
-************************************************************************
-*/
-FRESULT result;
-FIL file;
-UINT bw;
-
-static uint8_t buffer[BUFSIZE];
-char Restart_Play_flag = 0;
-// 播放歌曲
-void vs1053_player_song(char* filepath)
-{
-    uint16_t i = 0;
-
-    VS_Restart_Play();
-    VS_Set_All();
-    VS_Reset_DecodeTime();
-
-    if (strstr((const char *)filepath, ".flac") || strstr((const char *)filepath, ".FLAC"))
-        VS_Load_Patch((u16 *)vs1053b_patch, VS1053B_PATCHLEN);
-
-    result = f_open(&file, (const TCHAR *)filepath, FA_READ);
-
-    if (result == 0) {
-        VS_SPI_SpeedHigh();
-        while (1) {
-            i      = 0;
-            result = f_read(&file, buffer, BUFSIZE, (UINT *)&bw);
-            do {
-                if (VS_Send_MusicData(buffer + i) == 0) {
-                    i += 32;
-                    if (Restart_Play_flag) {
-                        VS_Restart_Play();
-                        Restart_Play_flag = 0;
-                        goto exit;
-                    }
-                }
-            } while (i < bw);
-
-            if (bw != BUFSIZE || result != 0) {
-                break;
-            }
-        }
-    exit:
-        f_close(&file);
-    }
-}
 
 /*--------------  END OF FILE -----------------------*/
