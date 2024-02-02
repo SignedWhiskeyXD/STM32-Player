@@ -4,47 +4,47 @@
 #include "states/fileOps.h"
 #include "vs1053/VS1053.h"
 #include "ff.h"
+#include "rtos/FreeRTOS.h"
+#include "rtos/task.h"
 
-FRESULT result;
-FIL file;
-UINT bw;
+uint8_t buffer[BUFSIZE];
+FIL musicFile;
 
-static uint8_t buffer[BUFSIZE];
-char Restart_Play_flag = 0;
-// 播放歌曲
-void vs1053_player_song(char* filepath)
+TaskHandle_t taskMusicHandler;
+
+void doBufferTransfer(UINT bufferLength)
 {
-    uint16_t i = 0;
+    uint16_t offset = 0;
+    while (offset < bufferLength) {
+        if (VS_Send_MusicData(buffer + offset) != 0) continue;
+        offset += 32;
+    }
+}
 
+void vs1053_player_song(void* filepath)
+{
     VS_Restart_Play();
     VS_Set_All();
     VS_Reset_DecodeTime();
 
-    result = f_open(&file, (const TCHAR *)filepath, FA_READ);
+    FRESULT result = f_open(&musicFile, (const TCHAR *)filepath, FA_READ);
 
-    if (result == 0) {
-        VS_SPI_SpeedHigh();
-        while (1) {
-            i      = 0;
-            result = f_read(&file, buffer, BUFSIZE, (UINT *)&bw);
-            do {
-                if (VS_Send_MusicData(buffer + i) == 0) {
-                    i += 32;
-                    if (Restart_Play_flag) {
-                        VS_Restart_Play();
-                        Restart_Play_flag = 0;
-                        goto exit;
-                    }
-                }
-            } while (i < bw);
+    if (result != FR_OK) return; 
+    
+    VS_SPI_SpeedHigh();
+    while (1) {
+        UINT bw;
 
-            if (bw != BUFSIZE || result != 0) {
-                break;
-            }
+        result = f_read(&musicFile, buffer, BUFSIZE, &bw);
+        doBufferTransfer(bw);
+
+        if (bw != BUFSIZE || result != FR_OK) {
+            break;
         }
-    exit:
-        f_close(&file);
+
+        vTaskDelay(30);
     }
+    f_close(&musicFile);
 }
 
 void playSelectedSong()
@@ -55,5 +55,5 @@ void playSelectedSong()
     const uint8_t selectedIndex = fileState->filenameBase + fileState->offset;
     strcpy(musicFile + 3, fileState->filenames[selectedIndex]);
 
-    vs1053_player_song(musicFile);
+    xTaskCreate(vs1053_player_song, "MusicPlay", 512, musicFile, 3, &taskMusicHandler);
 }
