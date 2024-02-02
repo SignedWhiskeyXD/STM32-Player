@@ -238,7 +238,7 @@
 #endif
 
 #ifndef INCLUDE_eTaskGetState
-    #define INCLUDE_eTaskGetState    0
+    #define INCLUDE_eTaskGetState    1
 #endif
 
 #ifndef INCLUDE_xTaskResumeFromISR
