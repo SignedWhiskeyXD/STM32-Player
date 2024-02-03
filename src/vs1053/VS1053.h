@@ -110,7 +110,7 @@ u8 	 VS_SPI_ReadWriteByte(u8 data);
 void VS_Init(void);						//初始化VS10XX	 
 void VS_Set_Speed(u8 t);				//设置播放速度
 u16  VS_Get_HeadInfo(void);     		//得到比特率
-u32 VS_Get_ByteRate(void);				//得到字节速率
+u16 VS_Get_ByteRate(void);				//得到字节速率
 u16 VS_Get_EndFillByte(void);			//得到填充字节
 u8 	 VS_Send_MusicData(u8* buf);		//向VS10XX发送32字节
 void VS_Restart_Play(void);				//重新开始下一首歌播放	  

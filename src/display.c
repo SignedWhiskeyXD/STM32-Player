@@ -1,5 +1,6 @@
 #include "display.h"
 
+#include <stdio.h>
 #include "myError.h"
 #include "stm32f10x.h"
 #include "states/states.h"
@@ -7,16 +8,9 @@
 #include "rtos/FreeRTOS.h"
 #include "rtos/task.h"
 
-uint8_t shouldRefresh = 1;
-
 void initScreen()
 {
     OLED_Init();
-}
-
-void refreshScreen()
-{
-    shouldRefresh = 1;
 }
 
 void showStartUp()
@@ -44,6 +38,31 @@ void showDirectoryBrowsing()
     }
 }
 
+void showProgress()
+{
+    static char progressBuffer[17];
+    MusicState* musicState = useMusicState();
+
+    if(musicState->musicSize == 0){
+        OLED_ShowPaddingString(3, 0, "", 16);
+        return;
+    }
+
+    if(musicState->avgBitrate == 0){
+        OLED_ShowPaddingString(3, 2, "Loading...", 13);
+        return;
+    }
+
+    const uint16_t leftLength = musicState->musicSize / musicState->avgBitrate - musicState->decodeTime;
+    sprintf(progressBuffer, "%02d:%02d/%02d:%02d",
+            musicState->decodeTime / 60,
+            musicState->decodeTime % 60,
+            leftLength / 60,
+            leftLength % 60);
+
+    OLED_ShowString(4, 3, progressBuffer);
+}
+
 void showError()
 {
     switch (getLastError()) {
@@ -58,16 +77,9 @@ void showError()
 
 void onScreenRefresh()
 {
-    if(shouldRefresh == 0) {
-        return;
-    }
-    
     GlobalState currentState = getGlobalState();
-    if (currentState != BROWSING_DIR) {
-        taskENTER_CRITICAL();
+    if (currentState != BROWSING_DIR)
         OLED_Clear();
-        taskEXIT_CRITICAL();
-    }
 
     switch (currentState) {
         case PLAYER_START_UP:
@@ -76,6 +88,7 @@ void onScreenRefresh()
 
         case BROWSING_DIR:
             showDirectoryBrowsing();
+            showProgress();
             break;
 
         case PLAYER_ERROR:
@@ -85,6 +98,4 @@ void onScreenRefresh()
         default:
             break;
     }
-
-    shouldRefresh = 0;
 }

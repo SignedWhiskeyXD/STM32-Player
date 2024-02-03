@@ -366,7 +366,7 @@ u16 VS_Get_HeadInfo(void)
 }
 // 得到平均字节数
 // 返回值：平均字节数速度
-u32 VS_Get_ByteRate(void)
+u16 VS_Get_ByteRate(void)
 {
     return VS_WRAM_Read(0X1E05); // 平均位速
 }

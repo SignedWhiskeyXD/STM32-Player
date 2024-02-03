@@ -54,7 +54,6 @@ void onButtonUpClicked()
 {
     switch (getGlobalState()) {
         case BROWSING_DIR:
-            refreshScreen();
             moveFilePointer(1);
             break;
         default:
@@ -66,7 +65,6 @@ void onButtonDownClicked()
 {
     switch (getGlobalState()) {
         case BROWSING_DIR:
-            refreshScreen();
             moveFilePointer(-1);
             break;
         default:

@@ -2,6 +2,7 @@
 #define STATES_H
 
 #include "fileOps.h"
+#include "music.h"
 
 typedef enum {
     PLAYER_START_UP,

@@ -3,8 +3,6 @@
 
 void initScreen();
 
-void refreshScreen();
-
 void onScreenRefresh();
 
 #endif

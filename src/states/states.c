@@ -11,5 +11,4 @@ GlobalState getGlobalState()
 void setGlobalState(GlobalState newState)
 {
     currentState = newState;
-    refreshScreen();
 }

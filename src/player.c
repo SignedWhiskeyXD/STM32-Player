@@ -1,7 +1,7 @@
 #include "player.h"
 
 #include <string.h>
-#include "states/fileOps.h"
+#include "states/states.h"
 #include "display.h"
 #include "vs1053/VS1053.h"
 #include "ff.h"
@@ -37,9 +37,13 @@ void taskPlayMusic(void* filepath)
     if (result != FR_OK) {
         vTaskDelete(taskMusicHandler);
         return;
-    } 
+    }
     
+    MusicState* musicState = useMusicState();
+    resetMusicState();
+    musicState->musicSize = musicFile.fsize;
     VS_SPI_SpeedHigh();
+
     while (1) {
         UINT bufferUsed;
 
@@ -54,13 +58,16 @@ void taskPlayMusic(void* filepath)
             break;
         }
 
+        musicState->avgBitrate = VS_Get_ByteRate();
+        musicState->decodeTime = VS_Get_DecodeTime();
+
         vTaskDelay(20);
     }
     f_close(&musicFile);
 
     File_State* fileState = useFileState();
     fileState->nowPlaying = fileState->totalFiles;
-    refreshScreen();
+    resetMusicState();
 
     vTaskDelete(taskMusicHandler);
 }
@@ -80,7 +87,6 @@ void playSelectedSong()
     
     fileState->nowPlaying = selectedIndex;
     fileState->paused = 0;
-    refreshScreen();
     xTaskCreate(taskPlayMusic, "MusicPlay", 512, musicFile, 3, &taskMusicHandler);
 }
 
@@ -100,6 +106,5 @@ uint8_t pauseOrResumeSelectedSong()
         fileState->paused = 0;
         vTaskResume(taskMusicHandler);
     }
-    refreshScreen();
     return 0;
 }
