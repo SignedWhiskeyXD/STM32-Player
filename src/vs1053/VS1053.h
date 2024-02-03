@@ -125,8 +125,4 @@ void VS_Set_Bass(u8 bfreq,u8 bass,u8 tfreq,u8 treble);//设置高低音
 void VS_Set_Effect(u8 eft);				//设置音效
 void VS_Set_All(void);
 
-/*--------------  以上是VS1053驱动部分 -------------------------*/
-/*--------------  下面开始是音乐播放部分 -------------------------*/
-#define BUFSIZE				1024*4
-
 #endif

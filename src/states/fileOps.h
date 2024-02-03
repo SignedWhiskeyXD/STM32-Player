@@ -7,6 +7,8 @@
 
 #define MAX_FILE_LIST_LENGTH 16
 
+#define DIR_MAX_LINES 3
+
 typedef struct {
     
     // 当前已读取的目录文件名

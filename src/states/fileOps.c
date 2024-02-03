@@ -66,10 +66,10 @@ void moveFilePointer(int8_t delta)
     if(newPos >= ctx.totalFiles || newPos < 0) return;
 
     if (delta > 0) {
-        if (ctx.offset < 3) {
+        if (ctx.offset < DIR_MAX_LINES - 1) {
             ctx.offset++;
-        } else if (ctx.filenameBase + 4 < MAX_FILE_LIST_LENGTH &&
-                   ctx.filenames[ctx.filenameBase + 4][0] != '\0') {
+        } else if (ctx.filenameBase + DIR_MAX_LINES < MAX_FILE_LIST_LENGTH &&
+                   ctx.filenames[ctx.filenameBase + DIR_MAX_LINES][0] != '\0') {
             ctx.filenameBase++;
         }
     } else {

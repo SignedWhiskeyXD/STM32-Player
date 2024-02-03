@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define BUFSIZE	4096
+
 void playSelectedSong();
 
 uint8_t pauseOrResumeSelectedSong();

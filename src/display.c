@@ -4,6 +4,8 @@
 #include "stm32f10x.h"
 #include "states/states.h"
 #include "oled/OLED.h"
+#include "rtos/FreeRTOS.h"
+#include "rtos/task.h"
 
 uint8_t shouldRefresh = 1;
 
@@ -26,7 +28,9 @@ void showDirectoryBrowsing()
 {
     File_State* fileState = useFileState();
 
-    const uint8_t lines = fileState->totalFiles - fileState->filenameBase;
+    uint8_t lines = fileState->totalFiles - fileState->filenameBase;
+    if(lines > DIR_MAX_LINES)
+        lines = DIR_MAX_LINES;
 
     for(uint8_t i = 0; i < lines; ++i){
         if(fileState->filenameBase + i == fileState->nowPlaying)
@@ -57,8 +61,11 @@ void onScreenRefresh()
     if(shouldRefresh == 0) {
         return;
     }
-
+    
+    taskENTER_CRITICAL();
     OLED_Clear();
+    taskEXIT_CRITICAL();
+
     switch (getGlobalState()) {
         case PLAYER_START_UP:
             showStartUp();

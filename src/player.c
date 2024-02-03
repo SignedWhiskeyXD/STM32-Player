@@ -17,7 +17,11 @@ void doBufferTransfer(UINT bufferLength)
 {
     uint16_t offset = 0;
     while (offset < bufferLength) {
-        if (VS_Send_MusicData(buffer + offset) != 0) continue;
+        // 如果DREQ没有就绪，不要进行忙等待，应让出CPU
+        if (VS_Send_MusicData(buffer + offset) != 0) {
+            vTaskDelay(5);
+            continue;
+        }
         offset += 32;
     }
 }
@@ -50,7 +54,7 @@ void taskPlayMusic(void* filepath)
             break;
         }
 
-        vTaskDelay(30);
+        vTaskDelay(20);
     }
     f_close(&musicFile);
 
