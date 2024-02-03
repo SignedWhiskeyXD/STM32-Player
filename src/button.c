@@ -53,7 +53,7 @@ void scanKeys()
 void onButtonUpClicked()
 {
     switch (getGlobalState()) {
-        case BORWSING_DIR:
+        case BROWSING_DIR:
             refreshScreen();
             moveFilePointer(1);
             break;
@@ -65,7 +65,7 @@ void onButtonUpClicked()
 void onButtonDownClicked()
 {
     switch (getGlobalState()) {
-        case BORWSING_DIR:
+        case BROWSING_DIR:
             refreshScreen();
             moveFilePointer(-1);
             break;
@@ -77,7 +77,7 @@ void onButtonDownClicked()
 void onButtonPlayClicked()
 {
     switch (getGlobalState()) {
-        case BORWSING_DIR:
+        case BROWSING_DIR:
             const uint8_t shouldReplay = pauseOrResumeSelectedSong();
             if(shouldReplay)
                 playSelectedSong();

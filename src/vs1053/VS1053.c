@@ -330,19 +330,16 @@ void VS_Set_Speed(u8 t)
 // FOR WMA HEAD0 :data speed HEAD1:0X574D
 // FOR MP3 HEAD0 :data speed HEAD1:ID
 // 比特率预定值,阶层III
-const u16 bitrate[2][16] =
-    {
-        {0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160, 0},
-        {0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320, 0}};
-// 返回Kbps的大小
-// 返回值：得到的码率
+const u16 bitrate[2][16] = {
+    {0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160, 0},
+    {0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320, 0}
+};
+// 返回码率的大小
+// 返回值：音频流的比特速度 bps
 u16 VS_Get_HeadInfo(void)
 {
-    unsigned int HEAD0;
-    unsigned int HEAD1;
-    HEAD0 = VS_RD_Reg(SPI_HDAT0);
-    HEAD1 = VS_RD_Reg(SPI_HDAT1);
-    // printf("(H0,H1):%x,%x\n",HEAD0,HEAD1);
+    u16 HEAD0 = VS_RD_Reg(SPI_HDAT0);
+    u16 HEAD1 = VS_RD_Reg(SPI_HDAT1);
     switch (HEAD1) {
         case 0x7665: // WAV格式
         case 0X4D54: // MIDI格式
@@ -353,12 +350,7 @@ u16 VS_Get_HeadInfo(void)
         case 0X574D: // WMA格式
         case 0X664C: // FLAC格式
         {
-            // printf("HEAD0:%d\n",HEAD0);
-            HEAD1 = HEAD0 * 2 / 25; // 相当于*8/100
-            if ((HEAD1 % 10) > 5)
-                return HEAD1 / 10 + 1; // 对小数点第一位四舍五入
-            else
-                return HEAD1 / 10;
+            return HEAD0 * 8;
         }
         default: // MP3格式,仅做了阶层III的表
         {

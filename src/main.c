@@ -35,7 +35,7 @@ void initPlayer()
     VS_HD_Reset();
 	VS_Soft_Reset();
     
-    setGlobalState(BORWSING_DIR);
+    setGlobalState(BROWSING_DIR);
 }
 
 TaskHandle_t taskCreationHandler;

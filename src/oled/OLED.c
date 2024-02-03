@@ -319,3 +319,13 @@ void OLED_Init(void)
 		
 	OLED_Clear();				//OLED清屏
 }
+
+void OLED_ShowPaddingString(uint8_t row, uint8_t col, char* str, uint8_t padding)
+{
+	uint8_t i;
+	for(i = 0; str[i] != '\0' && i < padding; ++i) 
+		OLED_ShowChar(row + 1, col + i + 1, str[i]);
+	
+	for(; i < padding; ++i)
+		OLED_ShowChar(row + 1, col + i + 1, ' ');
+}

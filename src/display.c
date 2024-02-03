@@ -40,7 +40,7 @@ void showDirectoryBrowsing()
         else
             OLED_ShowChar(i + 1, 1, ' ');
 
-        OLED_ShowString(i + 1, 2, fileState->filenames[fileState->filenameBase + i]);
+        OLED_ShowPaddingString(i, 1, fileState->filenames[fileState->filenameBase + i], 15);
     }
 }
 
@@ -62,16 +62,19 @@ void onScreenRefresh()
         return;
     }
     
-    taskENTER_CRITICAL();
-    OLED_Clear();
-    taskEXIT_CRITICAL();
+    GlobalState currentState = getGlobalState();
+    if (currentState != BROWSING_DIR) {
+        taskENTER_CRITICAL();
+        OLED_Clear();
+        taskEXIT_CRITICAL();
+    }
 
-    switch (getGlobalState()) {
+    switch (currentState) {
         case PLAYER_START_UP:
             showStartUp();
             break;
 
-        case BORWSING_DIR:
+        case BROWSING_DIR:
             showDirectoryBrowsing();
             break;
 

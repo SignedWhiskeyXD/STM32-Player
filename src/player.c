@@ -73,9 +73,9 @@ void playSelectedSong()
     const uint8_t selectedIndex = fileState->filenameBase + fileState->offset;
     strcpy(musicFile + 3, fileState->filenames[selectedIndex]);
 
-    // 如果播放任务还没完成，只是在等待期间阻塞了，那么需要先行删除
+    // 如果播放任务还没完成，只是在等待期间阻塞或挂起了，那么需要先行删除
     const eTaskState taskState = eTaskGetState(taskMusicHandler);
-    if(taskState == eBlocked)
+    if(taskState == eBlocked || taskState == eSuspended)
         vTaskDelete(taskMusicHandler);
     
     fileState->nowPlaying = selectedIndex;
