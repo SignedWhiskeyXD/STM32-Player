@@ -2,6 +2,7 @@
 
 #include <string.h>
 #include "states/fileOps.h"
+#include "display.h"
 #include "vs1053/VS1053.h"
 #include "ff.h"
 #include "rtos/FreeRTOS.h"
@@ -38,7 +39,11 @@ void taskPlayMusic(void* filepath)
     while (1) {
         UINT bufferUsed;
 
+        // 必须确保SDIO操作是原子的
+        taskENTER_CRITICAL();
         result = f_read(&musicFile, buffer, BUFSIZE, &bufferUsed);
+        taskEXIT_CRITICAL();
+
         doBufferTransfer(bufferUsed);
 
         if (bufferUsed != BUFSIZE || result != FR_OK) {
@@ -48,6 +53,11 @@ void taskPlayMusic(void* filepath)
         vTaskDelay(30);
     }
     f_close(&musicFile);
+
+    File_State* fileState = useFileState();
+    fileState->nowPlaying = fileState->totalFiles;
+    refreshScreen();
+
     vTaskDelete(taskMusicHandler);
 }
 
@@ -64,5 +74,28 @@ void playSelectedSong()
     if(taskState == eBlocked)
         vTaskDelete(taskMusicHandler);
     
+    fileState->nowPlaying = selectedIndex;
+    fileState->paused = 0;
+    refreshScreen();
     xTaskCreate(taskPlayMusic, "MusicPlay", 512, musicFile, 3, &taskMusicHandler);
+}
+
+uint8_t pauseOrResumeSelectedSong()
+{
+    File_State* fileState = useFileState();
+    const uint8_t selectedIndex = fileState->filenameBase + fileState->offset;
+
+    if(selectedIndex != fileState->nowPlaying) return 1;
+
+    const eTaskState taskState = eTaskGetState(taskMusicHandler);
+    if(taskState == eBlocked) {
+        fileState->paused = 1;
+        vTaskSuspend(taskMusicHandler);
+    }
+    else if(taskState == eSuspended) {
+        fileState->paused = 0;
+        vTaskResume(taskMusicHandler);
+    }
+    refreshScreen();
+    return 0;
 }

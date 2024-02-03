@@ -26,8 +26,15 @@ void showDirectoryBrowsing()
 {
     File_State* fileState = useFileState();
 
-    for(uint8_t i = 0; i < 4; ++i){
-        OLED_ShowChar(i + 1, 1, i == fileState->offset ? '>' : ' ');
+    const uint8_t lines = fileState->totalFiles - fileState->filenameBase;
+
+    for(uint8_t i = 0; i < lines; ++i){
+        if(fileState->filenameBase + i == fileState->nowPlaying)
+            OLED_ShowChar(i + 1, 1, fileState->paused ? '-' : '+');
+        else if(i == fileState->offset)
+            OLED_ShowChar(i + 1, 1, '>');
+        else
+            OLED_ShowChar(i + 1, 1, ' ');
 
         OLED_ShowString(i + 1, 2, fileState->filenames[fileState->filenameBase + i]);
     }

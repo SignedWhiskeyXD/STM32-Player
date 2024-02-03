@@ -54,6 +54,7 @@ void loadFiles()
     }
 
     ctx.totalFiles = idx;
+    ctx.nowPlaying = idx;
 }
 
 void moveFilePointer(int8_t delta)

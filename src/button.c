@@ -78,7 +78,9 @@ void onButtonPlayClicked()
 {
     switch (getGlobalState()) {
         case BORWSING_DIR:
-            playSelectedSong();
+            const uint8_t shouldReplay = pauseOrResumeSelectedSong();
+            if(shouldReplay)
+                playSelectedSong();
             break;
         default:
             break;

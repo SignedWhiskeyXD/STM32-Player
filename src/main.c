@@ -47,7 +47,7 @@ void taskKeyScan()
     while(1)
     {
         scanKeys();
-        vTaskDelay(20);
+        vTaskDelay(10);
     }
 }
 
@@ -80,8 +80,5 @@ int main()
 
     vTaskStartScheduler();
 
-    while (1)
-    {
-
-    }
+    while (1);
 }
