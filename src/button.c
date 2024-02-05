@@ -14,7 +14,9 @@ void onButtonUpClicked();
 
 void onButtonDownClicked();
 
-void onButtonPlayClicked();
+void onButtonConfirmClicked();
+
+void onButtonCancelClicked();
 
 void onButtonLeftClicked();
 
@@ -30,7 +32,7 @@ void initKeys()
     GPIO_Init(GPIOB, &gpioDef);
 
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
-    gpioDef.GPIO_Pin = GPIO_Pin_2 | GPIO_Pin_3;
+    gpioDef.GPIO_Pin = GPIO_Pin_2 | GPIO_Pin_3 | GPIO_Pin_11;
     GPIO_Init(GPIOA, &gpioDef);
 
     for(uint8_t i = 0; i < BUTTON_NUM; ++i)
@@ -48,7 +50,8 @@ void scanKeys()
 {
     setKeyState(BUTTON_UP, GPIOB, GPIO_Pin_6);
     setKeyState(BUTTON_DOWN, GPIOB, GPIO_Pin_7);
-    setKeyState(BUTTON_PLAY, GPIOB, GPIO_Pin_5);
+    setKeyState(BUTTON_CONFIRM, GPIOB, GPIO_Pin_5);
+    setKeyState(BUTTON_CANCEL, GPIOA, GPIO_Pin_11);
     setKeyState(BUTTON_LEFT, GPIOA, GPIO_Pin_3);
     setKeyState(BUTTON_RIGHT, GPIOA, GPIO_Pin_2);
 
@@ -56,8 +59,10 @@ void scanKeys()
         onButtonUpClicked();
     if(btnFalling[BUTTON_DOWN])
         onButtonDownClicked();
-    if(btnFalling[BUTTON_PLAY])
-        onButtonPlayClicked();
+    if(btnFalling[BUTTON_CONFIRM])
+        onButtonConfirmClicked();
+    if(btnFalling[BUTTON_CANCEL])
+        onButtonCancelClicked();
     if(btnFalling[BUTTON_LEFT])
         onButtonLeftClicked();
     if(btnFalling[BUTTON_RIGHT])
@@ -67,6 +72,9 @@ void scanKeys()
 void onButtonUpClicked()
 {
     switch (getGlobalState()) {
+        case BROWSING_MENU:
+            moveMenuPointer(1);
+            break;
         case BROWSING_DIR:
             moveFilePointer(1);
             break;
@@ -78,6 +86,9 @@ void onButtonUpClicked()
 void onButtonDownClicked()
 {
     switch (getGlobalState()) {
+        case BROWSING_MENU:
+            moveMenuPointer(-1);
+            break;
         case BROWSING_DIR:
             moveFilePointer(-1);
             break;
@@ -86,13 +97,27 @@ void onButtonDownClicked()
     }
 }
 
-void onButtonPlayClicked()
+void onButtonConfirmClicked()
 {
     switch (getGlobalState()) {
+        case BROWSING_MENU:
+            setGlobalStateFromMenu();
+            break;
         case BROWSING_DIR:
             const uint8_t shouldReplay = pauseOrResumeSelectedSong();
             if(shouldReplay)
                 playSelectedSong();
+            break;
+        default:
+            break;
+    }
+}
+
+void onButtonCancelClicked()
+{
+    switch (getGlobalState()) {
+        case BROWSING_DIR:
+            setGlobalState(BROWSING_MENU);
             break;
         default:
             break;

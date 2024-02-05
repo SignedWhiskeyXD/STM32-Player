@@ -15,7 +15,18 @@ void initScreen()
 
 void showStartUp()
 {
-    OLED_ShowString(1, 1, "Starting");
+    OLED_ShowPaddingString(0, 0, "Starting", 16);
+}
+
+void showMenuBrowsing()
+{
+    static const char* menuNames[3] = {"Music Player", "Recorder", "USB Drive"};
+
+    const MenuItem selectedMenuItem = getSelectedMenuItem();
+    for(uint8_t i = 0; i < 3; ++i){
+        OLED_ShowChar(i + 1, 1, i == selectedMenuItem ? '>' : ' ');
+        OLED_ShowPaddingString(i, 1, (char*)menuNames[i], 15);
+    }
 }
 
 void showDirectoryBrowsing()
@@ -41,7 +52,7 @@ void showDirectoryBrowsing()
 void showProgress()
 {
     static char progressBuffer[17];
-    MusicState* musicState = useMusicState();
+    const MusicState* musicState = useMusicState();
 
     if(musicState->musicSize == 0){
         OLED_ShowPaddingString(3, 0, "", 16);
@@ -68,7 +79,7 @@ void showError()
 {
     switch (getLastError()) {
         case SD_FATFS_MOUNT_ERROR:
-            OLED_ShowString(1, 1, "SD Mount Failed");
+            OLED_ShowPaddingString(0, 0, "SD Mount Failed", 16);
             break;
 
         default:
@@ -78,13 +89,14 @@ void showError()
 
 void onScreenRefresh()
 {
-    GlobalState currentState = getGlobalState();
-    if (currentState != BROWSING_DIR)
-        OLED_Clear();
-
-    switch (currentState) {
+    switch (getGlobalState()) {
         case PLAYER_START_UP:
             showStartUp();
+            break;
+
+        case BROWSING_MENU:
+            showMenuBrowsing();
+            showProgress();
             break;
 
         case BROWSING_DIR:
