@@ -10,6 +10,7 @@
 
 uint8_t buffer[BUFSIZE];
 FIL musicFile;
+int8_t jumpFlag = 0;
 
 TaskHandle_t taskMusicHandler = NULL;
 
@@ -47,6 +48,21 @@ uint32_t getMusicHeaderSize()
     return headerLength > musicFile.fsize ? 0 : headerLength;
 }
 
+void doMusicJump()
+{
+    if(VS_MusicJump() != 0) return;
+    
+    MusicState* musicState = useMusicState();
+    uint32_t absDelta = musicState->avgByteRate * 5;    // 进/退5秒钟
+    
+    if(jumpFlag > 0)
+        f_lseek(&musicFile, musicFile.fptr + absDelta);
+    else if(jumpFlag < 0 && absDelta <= musicFile.fptr)
+        f_lseek(&musicFile, musicFile.fptr - absDelta);
+
+    jumpFlag = 0;
+}
+
 void taskPlayMusic(void* filepath)
 {
     VS_Restart_Play();
@@ -82,8 +98,11 @@ void taskPlayMusic(void* filepath)
             break;
         }
 
-        musicState->avgBitrate = VS_Get_ByteRate();
+        musicState->avgByteRate = VS_Get_ByteRate();
         musicState->decodeTime = VS_Get_DecodeTime();
+
+        if(jumpFlag != 0)
+            doMusicJump();
 
         vTaskDelay(20);
     }
@@ -131,4 +150,9 @@ uint8_t pauseOrResumeSelectedSong()
         vTaskResume(taskMusicHandler);
     }
     return 0;
+}
+
+void setJumpFlag(int8_t direction)
+{
+    jumpFlag = direction;
 }

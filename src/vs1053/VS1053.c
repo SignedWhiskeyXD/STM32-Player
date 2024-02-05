@@ -433,6 +433,27 @@ void VS_Restart_Play(void)
         VS_Soft_Reset(); // 软复位
     }
 }
+
+uint8_t VS_MusicJump()
+{
+    const uint16_t sciStatus = VS_RD_Reg(SPI_STATUS);
+    
+    // 若SCI_NO_JUMP位被设置，则不能快进快倒
+    if(sciStatus >= 0x8000) return 1;
+    
+    uint8_t endFillBuffer[32];
+    const uint8_t endFill = (uint8_t)VS_Get_EndFillByte();
+    for(uint8_t i = 0; i < 32; ++i) 
+        endFillBuffer[i] = endFill;
+
+    for(uint16_t i = 0; i < 2048; ) {
+        if(VS_Send_MusicData(endFillBuffer) != 0) continue;
+        i += 32;
+    }
+    
+    return 0;
+}
+
 // 重设解码时间
 void VS_Reset_DecodeTime(void)
 {

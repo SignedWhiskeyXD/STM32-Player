@@ -114,6 +114,7 @@ u16 VS_Get_ByteRate(void);				//得到字节速率
 u16 VS_Get_EndFillByte(void);			//得到填充字节
 u8 	 VS_Send_MusicData(u8* buf);		//向VS10XX发送32字节
 void VS_Restart_Play(void);				//重新开始下一首歌播放	  
+uint8_t VS_MusicJump();
 void VS_Reset_DecodeTime(void);			//重设解码时间
 u16  VS_Get_DecodeTime(void);   		//得到解码时间
 

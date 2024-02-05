@@ -9,4 +9,6 @@ void playSelectedSong();
 
 uint8_t pauseOrResumeSelectedSong();
 
+void setJumpFlag(int8_t direction);
+
 #endif

@@ -48,12 +48,12 @@ void showProgress()
         return;
     }
 
-    if(musicState->avgBitrate == 0){
+    if(musicState->avgByteRate == 0){
         OLED_ShowPaddingString(3, 2, "Loading...", 13);
         return;
     }
 
-    const uint16_t leftLength = musicState->musicSize / musicState->avgBitrate - musicState->decodeTime;
+    const uint16_t leftLength = musicState->musicSize / musicState->avgByteRate;
     sprintf(progressBuffer, "%02d:%02d/%02d:%02d",
             musicState->decodeTime / 60,
             musicState->decodeTime % 60,

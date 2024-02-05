@@ -9,7 +9,7 @@ MusicState* useMusicState()
 
 void resetMusicState()
 {
-    musicState.avgBitrate = 0;
+    musicState.avgByteRate = 0;
     musicState.decodeTime = 0;
     musicState.musicSize = 0;
 }

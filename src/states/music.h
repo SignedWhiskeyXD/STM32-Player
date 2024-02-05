@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 typedef struct {
-    uint16_t avgBitrate;
+    uint16_t avgByteRate;
     uint16_t decodeTime;
     uint32_t musicSize;
 } MusicState;
