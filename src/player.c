@@ -26,6 +26,27 @@ void doBufferTransfer(UINT bufferLength)
     }
 }
 
+uint32_t getMusicHeaderSize()
+{
+    /*
+        对于MP3音频，除了文件尾部的ID2标签外，也有可能会在文件首部包含ID3标签
+        ID3标签包含了很多元信息，包括曲目的封面图片，这些数据对硬件解码而言是无用的
+        应当从ID3首部中计算出首部长度，得出文件指针偏移量，免得浪费时间
+    */
+    UINT bufferUsed;
+    FRESULT res = f_read(&musicFile, buffer, 10, &bufferUsed);
+    
+    if(res != FR_OK || bufferUsed != 10) return 0;
+
+    if(buffer[0] != 'I' || buffer[1] != 'D' || buffer[2] != '3') return 0;
+
+    uint32_t headerLength = 0;
+    for(uint8_t i = 0; i < 4; ++i)
+        headerLength |= (buffer[i + 6] << (21 - i * 7));
+    
+    return headerLength > musicFile.fsize ? 0 : headerLength;
+}
+
 void taskPlayMusic(void* filepath)
 {
     VS_Restart_Play();
@@ -41,9 +62,12 @@ void taskPlayMusic(void* filepath)
     
     MusicState* musicState = useMusicState();
     resetMusicState();
-    musicState->musicSize = musicFile.fsize;
-    VS_SPI_SpeedHigh();
 
+    uint32_t headerLength = getMusicHeaderSize();
+    f_lseek(&musicFile, headerLength);
+    musicState->musicSize = musicFile.fsize - headerLength;
+
+    VS_SPI_SpeedHigh();
     while (1) {
         UINT bufferUsed;
 
