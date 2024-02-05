@@ -53,12 +53,13 @@ void showProgress()
         return;
     }
 
-    const uint16_t leftLength = musicState->musicSize / musicState->avgByteRate;
+    const uint16_t musicLength = musicState->musicSize / musicState->avgByteRate;
+    const uint16_t currentProgress = musicState->decodeTime + musicState->offsetTime;
     sprintf(progressBuffer, "%02d:%02d/%02d:%02d",
-            musicState->decodeTime / 60,
-            musicState->decodeTime % 60,
-            leftLength / 60,
-            leftLength % 60);
+            currentProgress / 60,
+            currentProgress % 60,
+            musicLength / 60,
+            musicLength % 60);
 
     OLED_ShowString(4, 3, progressBuffer);
 }

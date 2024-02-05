@@ -7,6 +7,7 @@ typedef struct {
     uint16_t avgByteRate;
     uint16_t decodeTime;
     uint32_t musicSize;
+    int16_t offsetTime;
 } MusicState;
 
 MusicState* useMusicState();

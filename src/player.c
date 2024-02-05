@@ -50,17 +50,31 @@ uint32_t getMusicHeaderSize()
 
 void doMusicJump()
 {
-    if(VS_MusicJump() != 0) return;
+    taskENTER_CRITICAL();
+    if(VS_MusicJump() != 0) {
+        taskEXIT_CRITICAL();
+        return;
+    }
     
     MusicState* musicState = useMusicState();
     uint32_t absDelta = musicState->avgByteRate * 5;    // 进/退5秒钟
     
-    if(jumpFlag > 0)
+    if(jumpFlag > 0){ 
         f_lseek(&musicFile, musicFile.fptr + absDelta);
-    else if(jumpFlag < 0 && absDelta <= musicFile.fptr)
+        musicState->offsetTime += 5;
+    }
+    else if(jumpFlag < 0 && absDelta <= musicFile.fptr){
         f_lseek(&musicFile, musicFile.fptr - absDelta);
+        musicState->offsetTime -= 5;
+    }
+    else if(jumpFlag < 0) {
+        // 倒回开始了，不如直接重设解码时间
+        f_lseek(&musicFile, musicFile.fsize - musicState->musicSize);
+        VS_Reset_DecodeTime();
+    }
 
     jumpFlag = 0;
+    taskEXIT_CRITICAL();
 }
 
 void taskPlayMusic(void* filepath)
@@ -154,5 +168,10 @@ uint8_t pauseOrResumeSelectedSong()
 
 void setJumpFlag(int8_t direction)
 {
+    const File_State* fileState = useFileState();
+    // 未播放歌曲，或者暂停播放时，不进行进度调整
+    if(fileState->nowPlaying > fileState->totalFiles || fileState->paused)
+        return;
+
     jumpFlag = direction;
 }
