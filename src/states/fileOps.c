@@ -2,18 +2,12 @@
 
 #include <string.h>
 
-#include "FATFS/ff.h"
-
 File_State ctx;
-
-TCHAR lfnBuffer[256];
 
 void toLower(char* filename)
 {
-    for(uint8_t i = 0; i < 13 && filename[i] != '\0'; ++i){
-        if(filename[i] < 0)
-            filename[i] = '?';
-        else if(filename[i] >= 65 && filename[i] <= 90)
+    for(uint8_t i = 0; i < MAX_LFN_LENGTH && filename[i] != '\0'; ++i){
+        if(filename[i] >= 65 && filename[i] <= 90)
             filename[i] += 32;
     }
 }
@@ -38,21 +32,26 @@ void loadFiles()
     FRESULT res = f_opendir(&dir, "0:/");
 
     FILINFO fileInfo;
+    fileInfo.lfname = ctx.filenames[0];
+    fileInfo.lfsize = MAX_LFN_LENGTH;
+
     uint8_t idx = 0;
-    fileInfo.lfname = lfnBuffer;
-    fileInfo.lfsize = 256;
-    while (1) {
+    while (idx < MAX_FILE_LIST_LENGTH) {
         res = f_readdir(&dir, &fileInfo);
-        if(res != FR_OK || fileInfo.fname[0] == '\0' || idx >= MAX_FILE_LIST_LENGTH) 
+        if(res != FR_OK || fileInfo.fname[0] == '\0') 
             break;
         
         toLower(fileInfo.fname);
         if(!strstr(fileInfo.fname, ".mp3")) continue;
-        
-        strcpy(ctx.filenames[idx], fileInfo.fname);
-        ++idx;
+
+        // 如果长文件名不可用，则以短文件名回退，并且转小写
+        if(ctx.filenames[idx][0] == '\0')
+            strcpy(ctx.filenames[idx], fileInfo.fname);
+
+        fileInfo.lfname = ctx.filenames[++idx];
     }
 
+    f_closedir(&dir);
     ctx.totalFiles = idx;
     ctx.nowPlaying = idx;
 }

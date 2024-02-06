@@ -132,7 +132,7 @@ void taskPlayMusic(void* filepath)
 void playSelectedSong()
 {
     File_State* fileState = useFileState();
-    char musicFile[16] = "0:/";
+    TCHAR musicFile[MAX_LFN_LENGTH] = "0:/";
 
     const uint8_t selectedIndex = fileState->filenameBase + fileState->offset;
     strcpy(musicFile + 3, fileState->filenames[selectedIndex]);

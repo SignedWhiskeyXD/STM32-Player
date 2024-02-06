@@ -1,18 +1,21 @@
 #ifndef FILEOPS_H
 #define FILEOPS_H
 
+#include <stdint.h>
 #include "stm32f10x.h"
 #include "myError.h"
-#include <stdint.h>
+#include "ff.h"
 
-#define MAX_FILE_LIST_LENGTH 16
+#define MAX_FILE_LIST_LENGTH 32
+
+#define MAX_LFN_LENGTH 64
 
 #define DIR_MAX_LINES 3
 
 typedef struct {
     
     // 当前已读取的目录文件名
-    char filenames[MAX_FILE_LIST_LENGTH][13];
+    TCHAR filenames[MAX_FILE_LIST_LENGTH][MAX_LFN_LENGTH];
 
     // 所有已加载的文件总数
     uint8_t totalFiles;
