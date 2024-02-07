@@ -12,6 +12,21 @@ void toLower(char* filename)
     }
 }
 
+uint8_t isMusicFile(TCHAR* filename)
+{
+    static const char* extensions[2] = {"mp3", "wav"};
+    static const uint8_t tableSize = sizeof(extensions) / sizeof(extensions[0]);
+
+    char* endPos = strstr(filename, ".");
+    if(!endPos || endPos - filename > 10) return 0;
+    
+    for(uint8_t i = 0; i < tableSize; ++i) {
+        if(strncmp(endPos + 1, extensions[i], 3) == 0)
+            return 1;
+    }
+    return 0;
+}
+
 File_State* useFileState()
 {
     return &ctx;
@@ -42,7 +57,7 @@ void loadFiles()
             break;
         
         toLower(fileInfo.fname);
-        if(!strstr(fileInfo.fname, ".mp3")) continue;
+        if(!isMusicFile(fileInfo.fname)) continue;
 
         // 如果长文件名不可用，则以短文件名回退，并且转小写
         if(ctx.filenames[idx][0] == '\0')

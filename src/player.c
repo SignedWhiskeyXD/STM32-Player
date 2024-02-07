@@ -175,3 +175,15 @@ void setJumpFlag(int8_t direction)
 
     jumpFlag = direction;
 }
+
+void cancelPlayerTask()
+{
+    const eTaskState taskState = eTaskGetState(taskMusicHandler);
+    if(taskState == eBlocked || taskState == eSuspended)
+        vTaskDelete(taskMusicHandler);
+    
+    File_State* fileState = useFileState();
+    fileState->nowPlaying = fileState->totalFiles;
+    fileState->paused = 0;
+    resetMusicState();
+}

@@ -16,7 +16,12 @@ static FRESULT result;
 static FIL file; /* file objects */
 
 static __WaveHeader rechead;
-static _recorder_obj recset;
+static _recorder_obj recset = {
+    0,  // MIC
+    1,  // 8K
+    0,  // 左声道
+    6   // 增益
+};
 
 uint32_t sectorsize            = 0;
 int8_t tempdata[TEMPDATA_SIZE] = {0};
@@ -41,15 +46,9 @@ void prepareRecorder()
 {
     memset(tempdata, 0, TEMPDATA_SIZE);
     VS_Set_All();
-
-    recset.input      = 0; // MIC
-    recset.samplerate = 1; // 8K
-    recset.channel    = 0; // 左声道
-    recset.agc        = 6; // 增益
     recoder_enter_rec_mode(&recset);
 
-    while (VS_RD_Reg(SPI_HDAT1) >> 8)
-        ; // 等到buf 较为空闲再开始
+    while (VS_RD_Reg(SPI_HDAT1) >> 8); // 等到buf 较为空闲再开始
 
     rechead.riff.ChunkID      = 0X46464952;                 //"RIFF"
     rechead.riff.ChunkSize    = 0;                          // 还未确定,最后需要计算
@@ -80,12 +79,12 @@ void onStateRecord()
 
     while (1) {
         uint16_t regval = VS_RD_Reg(SPI_HDAT1);
-        if (regval < 256 || regval >= 896) {
-            vTaskDelay(10);
-            continue;
-        }
-
         uint16_t idx = 0;
+        UINT bw = 0;
+
+        if (regval < 256 || regval >= 896) continue;
+
+        taskENTER_CRITICAL();
         while (idx < RECORD_BUFSIZE) // 一次读取BUFSIZE字节
         {
             regval            = VS_RD_Reg(SPI_HDAT0);
@@ -94,8 +93,10 @@ void onStateRecord()
             idx += 2;
         }
         f_lseek(&file, 44 + sectorsize * RECORD_BUFSIZE);
-        UINT bw;
+        
         result = f_write(&file, tempdata, RECORD_BUFSIZE, &bw); // 写入文件
+        taskEXIT_CRITICAL();
+
         if (result) {
             f_close(&file);
             return; // 写入出错.

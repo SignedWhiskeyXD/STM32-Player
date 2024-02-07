@@ -1,6 +1,7 @@
 #include "menu.h"
 
 #include "states.h"
+#include "player.h"
 
 MenuItem selectedMenuItem = MENU_PLAYER;
 
@@ -25,6 +26,7 @@ void setGlobalStateFromMenu()
             setGlobalState(BROWSING_DIR);
             break;
         case MENU_RECORDER:
+            cancelPlayerTask();
             setGlobalState(RECORDING);
             break;
         default:
