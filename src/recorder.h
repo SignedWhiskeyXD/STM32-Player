@@ -1,21 +1,8 @@
 #ifndef __RECORDER_H
 #define	__RECORDER_H
 
+void toggleRecord();
 
-typedef enum
-{
-	STATE_WAIT =0,
-	STATE_RECORDING,
-	STATE_PLAYING,
-}enumRecorder;
-
-
-void Recorder_Run(void);
-
-void startRecord();
-
-
-
-
+void stopRecorder();
 
 #endif /* __RECORDER_H */

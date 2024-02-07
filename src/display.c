@@ -75,6 +75,13 @@ void showProgress()
     OLED_ShowString(4, 3, progressBuffer);
 }
 
+void showRecorder()
+{
+    OLED_ShowPaddingString(0, 0, "Recorder", 16);
+    for(uint8_t i = 1; i < 4; ++i)
+        OLED_ShowPaddingString(i, 0, "", 16);
+}
+
 void showError()
 {
     switch (getLastError()) {
@@ -102,6 +109,10 @@ void onScreenRefresh()
         case BROWSING_DIR:
             showDirectoryBrowsing();
             showProgress();
+            break;
+        
+        case RECORDING:
+            showRecorder();
             break;
 
         case PLAYER_ERROR:

@@ -9,6 +9,7 @@ typedef enum {
     PLAYER_START_UP,
     BROWSING_MENU,
     BROWSING_DIR,
+    RECORDING,
     
     PLAYER_ERROR
 } GlobalState;

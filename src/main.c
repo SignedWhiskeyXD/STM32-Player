@@ -17,16 +17,11 @@
 #include "vs1053/VS1053.h"
 #include "rtos/FreeRTOS.h"
 #include "rtos/task.h"
-#include "Key/bsp_key.h"
-#include "led/bsp_led.h"
 
 void initPlayer()
 {
     initScreen();
     initKeys();
-
-    Key_GPIO_Config();
-    LED_GPIO_Config();
 
     MYERROR error = initSD();
     if(error != OPERATION_SUCCESS){

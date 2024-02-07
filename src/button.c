@@ -102,15 +102,15 @@ void onButtonConfirmClicked()
 {
     switch (getGlobalState()) {
         case BROWSING_MENU:
-            if(getSelectedMenuItem() == MENU_RECORDER)
-                startRecord();
-            else
-                setGlobalStateFromMenu();
+            setGlobalStateFromMenu();
             break;
         case BROWSING_DIR:
             const uint8_t shouldReplay = pauseOrResumeSelectedSong();
             if(shouldReplay)
                 playSelectedSong();
+            break;
+        case RECORDING:
+            toggleRecord();
             break;
         default:
             break;
@@ -121,6 +121,10 @@ void onButtonCancelClicked()
 {
     switch (getGlobalState()) {
         case BROWSING_DIR:
+            setGlobalState(BROWSING_MENU);
+            break;
+        case RECORDING:
+            stopRecorder();
             setGlobalState(BROWSING_MENU);
             break;
         default:

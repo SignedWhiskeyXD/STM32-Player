@@ -24,6 +24,9 @@ void setGlobalStateFromMenu()
         case MENU_PLAYER:
             setGlobalState(BROWSING_DIR);
             break;
+        case MENU_RECORDER:
+            setGlobalState(RECORDING);
+            break;
         default:
             break;
     }
