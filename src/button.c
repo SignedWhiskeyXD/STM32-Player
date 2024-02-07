@@ -4,6 +4,7 @@
 #include "vs1053/VS1053.h"
 #include "display.h"
 #include "player.h"
+#include "recorder.h"
 #include "stm32f10x.h"
 
 uint8_t btnHistory[BUTTON_NUM];
@@ -101,7 +102,10 @@ void onButtonConfirmClicked()
 {
     switch (getGlobalState()) {
         case BROWSING_MENU:
-            setGlobalStateFromMenu();
+            if(getSelectedMenuItem() == MENU_RECORDER)
+                startRecord();
+            else
+                setGlobalStateFromMenu();
             break;
         case BROWSING_DIR:
             const uint8_t shouldReplay = pauseOrResumeSelectedSong();

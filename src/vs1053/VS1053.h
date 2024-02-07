@@ -49,7 +49,6 @@
 //	u8 saveflag; 	//保存标志,0X0A,保存过了;其他,还从未保存	   
 }_vs1053_obj;
 
-
 extern _vs1053_obj vsset;		//VS1053设置
 
 #define VS_WRITE_COMMAND 	0x02
@@ -125,5 +124,62 @@ void VS_Set_Vol(u8 volx);				//设置主音量
 void VS_Set_Bass(u8 bfreq,u8 bass,u8 tfreq,u8 treble);//设置高低音
 void VS_Set_Effect(u8 eft);				//设置音效
 void VS_Set_All(void);
+
+/*--------以下是录音功能------------*/
+ //RIFF块
+typedef struct
+{
+    u32 ChunkID;		   	//chunk id;这里固定为"RIFF",即0X46464952
+    u32 ChunkSize ;		   	//集合大小;文件总大小-8
+    u32 Format;	   			//格式;WAVE,即0X45564157
+}ChunkRIFF ;
+//fmt块
+typedef struct
+{
+    u32 ChunkID;		   	//chunk id;这里固定为"fmt ",即0X20746D66
+    u32 ChunkSize ;		   	//子集合大小(不包括ID和Size);这里为:20.
+    u16 AudioFormat;	  	//音频格式;0X10,表示线性PCM;0X11表示IMA ADPCM
+	u16 NumOfChannels;		//通道数量;1,表示单声道;2,表示双声道;
+	u32 SampleRate;			//采样率;0X1F40,表示8Khz
+	u32 ByteRate;			//字节速率; 
+	u16 BlockAlign;			//块对齐(字节); 
+	u16 BitsPerSample;		//单个采样数据大小;4位ADPCM,设置为4
+//	u16 ByteExtraData;		//附加的数据字节;2个; 线性PCM,没有这个参数
+//	u16 ExtraData;			//附加的数据,单个采样数据块大小;0X1F9:505字节  线性PCM,没有这个参数
+}ChunkFMT;	   
+//fact块 
+typedef struct 
+{
+    u32 ChunkID;		   	//chunk id;这里固定为"fact",即0X74636166;
+    u32 ChunkSize ;		   	//子集合大小(不包括ID和Size);这里为:4.
+    u32 NumOfSamples;	  	//采样的数量; 
+}ChunkFACT;
+//data块 
+typedef struct 
+{
+    u32 ChunkID;		   	//chunk id;这里固定为"data",即0X61746164
+    u32 ChunkSize ;		   	//子集合大小(不包括ID和Size);文件大小-60.
+}ChunkDATA;
+
+//wav头
+typedef struct
+{ 
+	ChunkRIFF riff;	//riff块
+	ChunkFMT fmt;  	//fmt块
+	//ChunkFACT fact;	//fact块 线性PCM,没有这个结构体	 
+	ChunkDATA data;	//data块		 
+}__WaveHeader; 
+
+typedef struct
+{
+	u8 input;						//输入通道选择.0：MICP，1：LINE1
+	u8 samplerate;			//采样速率选择（x*8K）：1：8K，2：16K，3：24K...
+	u8 channel;					//声道：1：双声道，2：左声道，3：右声道
+	u8 agc;							//增益：1~64
+}_recorder_obj;
+
+void recoder_enter_rec_mode(_recorder_obj *recset);
+//void recoder_wav_init(__WaveHeader* wavhead);
+/*-----------  结束录音功能 -------------------*/
 
 #endif
