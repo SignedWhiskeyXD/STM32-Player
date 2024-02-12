@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "stm32f10x.h"
 #include "myError.h"
-#include "ff.h"
+#include "FATFS/ff.h"
 
 #define MAX_FILE_LIST_LENGTH 32
 

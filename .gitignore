@@ -7,9 +7,8 @@
 
 # project out
 /build
-/bin
-/obj
-/out
+/make-build
+cmake-*
 
 # eide template
 *.ept

@@ -1,10 +1,10 @@
 #include <stdint.h>
 #include <string.h>
-#include "VS1053.h"
-#include "recorder.h"
-#include "ff.h"
+#include "vs1053/VS1053.h"
+#include "FATFS/ff.h"
 #include "rtos/FreeRTOS.h"
 #include "rtos/task.h"
+#include "recorder.h"
 
 #define NAMESIZE 30
 static char last_record_pathname[NAMESIZE] = "0:Test_0001.wav";

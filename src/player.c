@@ -4,7 +4,7 @@
 #include "states/states.h"
 #include "display.h"
 #include "vs1053/VS1053.h"
-#include "ff.h"
+#include "FATFS/ff.h"
 #include "rtos/FreeRTOS.h"
 #include "rtos/task.h"
 
