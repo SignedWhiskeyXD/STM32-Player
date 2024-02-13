@@ -35,7 +35,7 @@ typedef struct {
 
 File_State* useFileState();
 
-MYERROR initSD();
+MyError initSD();
 
 void loadFiles();
 

@@ -10,7 +10,6 @@
 */
 
 #include "myError.h"
-#include "stm32f10x.h"
 #include "states/states.h"
 #include "button.h"
 #include "display.h"
@@ -18,12 +17,16 @@
 #include "rtos/FreeRTOS.h"
 #include "rtos/task.h"
 
+TaskHandle_t taskCreationHandler;
+TaskHandle_t taskKeyScanHandler;
+TaskHandle_t taskScreenHandler;
+
 void initPlayer()
 {
     initScreen();
     initKeys();
 
-    MYERROR error = initSD();
+    MyError error = initSD();
     if(error != OPERATION_SUCCESS){
         setLastError(error);
         setGlobalState(PLAYER_ERROR);
@@ -37,10 +40,6 @@ void initPlayer()
     
     setGlobalState(BROWSING_MENU);
 }
-
-TaskHandle_t taskCreationHandler;
-TaskHandle_t taskKeyScanHandler;
-TaskHandle_t taskScreenHandler;
 
 void taskKeyScan()
 {
@@ -80,7 +79,5 @@ int main()
 
     vTaskStartScheduler();
 
-    while (1)
-    {
-    }
+    while (1);
 }

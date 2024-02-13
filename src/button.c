@@ -1,8 +1,6 @@
 #include "button.h"
 
 #include "states/states.h"
-#include "vs1053/VS1053.h"
-#include "display.h"
 #include "player.h"
 #include "recorder.h"
 #include "stm32f10x.h"
@@ -73,12 +71,14 @@ void scanKeys()
 void onButtonUpClicked()
 {
     switch (getGlobalState()) {
-        case BROWSING_MENU:
+        case BROWSING_MENU: {
             moveMenuPointer(1);
             break;
-        case BROWSING_DIR:
+        }
+        case BROWSING_DIR: {
             moveFilePointer(1);
             break;
+        }
         default:
             break;
     }
@@ -87,12 +87,14 @@ void onButtonUpClicked()
 void onButtonDownClicked()
 {
     switch (getGlobalState()) {
-        case BROWSING_MENU:
+        case BROWSING_MENU: {
             moveMenuPointer(-1);
             break;
-        case BROWSING_DIR:
+        }
+        case BROWSING_DIR: {
             moveFilePointer(-1);
             break;
+        }
         default:
             break;
     }
@@ -101,17 +103,20 @@ void onButtonDownClicked()
 void onButtonConfirmClicked()
 {
     switch (getGlobalState()) {
-        case BROWSING_MENU:
+        case BROWSING_MENU: {
             setGlobalStateFromMenu();
             break;
-        case BROWSING_DIR:
+        }
+        case BROWSING_DIR: {
             const uint8_t shouldReplay = pauseOrResumeSelectedSong();
-            if(shouldReplay)
+            if (shouldReplay)
                 playSelectedSong();
             break;
-        case RECORDING:
+        }
+        case RECORDING: {
             toggleRecord();
             break;
+        }
         default:
             break;
     }
@@ -120,13 +125,15 @@ void onButtonConfirmClicked()
 void onButtonCancelClicked()
 {
     switch (getGlobalState()) {
-        case BROWSING_DIR:
+        case BROWSING_DIR: {
             setGlobalState(BROWSING_MENU);
             break;
-        case RECORDING:
+        }
+        case RECORDING: {
             stopRecorder();
             setGlobalState(BROWSING_MENU);
             break;
+        }
         default:
             break;
     }
@@ -135,9 +142,10 @@ void onButtonCancelClicked()
 void onButtonLeftClicked()
 {
     switch (getGlobalState()) {
-        case BROWSING_DIR:
+        case BROWSING_DIR: {
             setJumpFlag(-1);
             break;
+        }
         default:
             break;
     }
@@ -146,9 +154,10 @@ void onButtonLeftClicked()
 void onButtonRightClicked()
 {
     switch (getGlobalState()) {
-        case BROWSING_DIR:
+        case BROWSING_DIR: {
             setJumpFlag(1);
             break;
+        }
         default:
             break;
     }

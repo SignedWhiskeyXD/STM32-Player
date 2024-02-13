@@ -1,30 +1,29 @@
-#ifndef __VS1053_H__
-#define __VS1053_H__
+#ifndef VS1053_H
+#define VS1053_H
 
 #include "stm32f10x.h"
 
-//////////////////////////////////////////////////////////////
-/*¶¨ÒåSPI2×÷ÎªVS1053µÄÓ²¼ş½Ó¿Ú*/
-#define VS_XCS								GPIO_Pin_12								/*¶¨ÒåVS1053µÄÆ¬Ñ¡¹Ü½Å*/
-#define VS_SCLK								GPIO_Pin_13								/*¶¨ÒåVS1053µÄÊ±ÖÓ¹Ü½Å*/
-#define VS_MISO								GPIO_Pin_14								/*¶¨ÒåVS1053µÄMISO¹Ü½Å*/
-#define VS_MOSI								GPIO_Pin_15								/*¶¨ÒåVS1053µÄMOSI¹Ü½Å*/
-#define VS_SPIGPIO_PORT				GPIOB											/* GPIO¶Ë¿Ú */
-#define VS_SPIGPIO_CLK				RCC_APB2Periph_GPIOB			/* GPIO¶Ë¿ÚÊ±ÖÓ */
+/*å®šä¹‰SPI2ä½œä¸ºVS1053çš„ç¡¬ä»¶æ¥å£*/
+#define VS_XCS								GPIO_Pin_12								/*å®šä¹‰VS1053çš„ç‰‡é€‰ç®¡è„š*/
+#define VS_SCLK								GPIO_Pin_13								/*å®šä¹‰VS1053çš„æ—¶é’Ÿç®¡è„š*/
+#define VS_MISO								GPIO_Pin_14								/*å®šä¹‰VS1053çš„MISOç®¡è„š*/
+#define VS_MOSI								GPIO_Pin_15								/*å®šä¹‰VS1053çš„MOSIç®¡è„š*/
+#define VS_SPIGPIO_PORT				GPIOB											/* GPIOç«¯å£ */
+#define VS_SPIGPIO_CLK				RCC_APB2Periph_GPIOB			/* GPIOç«¯å£æ—¶é’Ÿ */
 #define VS_SPI								SPI2
 #define VS_SPI_CLK						RCC_APB1Periph_SPI2
 
-#define VS_XDCS								GPIO_Pin_9								/*¶¨ÒåVS1053µÄÆ¬Ñ¡¹Ü½Å*/
-#define VS_GPIO_XDCS_PORT			GPIOB											/* GPIO¶Ë¿Ú */
-#define VS_GPIO_XDCS_CLK			RCC_APB2Periph_GPIOB			/* GPIO¶Ë¿ÚÊ±ÖÓ */
+#define VS_XDCS								GPIO_Pin_9								/*å®šä¹‰VS1053çš„ç‰‡é€‰ç®¡è„š*/
+#define VS_GPIO_XDCS_PORT			GPIOB											/* GPIOç«¯å£ */
+#define VS_GPIO_XDCS_CLK			RCC_APB2Periph_GPIOB			/* GPIOç«¯å£æ—¶é’Ÿ */
 
-#define VS_GPIO_RST_PORT			GPIOC											/* GPIO¶Ë¿Ú */
-#define VS_GPIO_RST_CLK				RCC_APB2Periph_GPIOC					/* GPIO¶Ë¿ÚÊ±ÖÓ */
-#define VS_RST								GPIO_Pin_7								/*¶¨ÒåVS1053µÄRST¹Ü½Å*/
+#define VS_GPIO_RST_PORT			GPIOC											/* GPIOç«¯å£ */
+#define VS_GPIO_RST_CLK				RCC_APB2Periph_GPIOC					/* GPIOç«¯å£æ—¶é’Ÿ */
+#define VS_RST								GPIO_Pin_7								/*å®šä¹‰VS1053çš„RSTç®¡è„š*/
 
-#define VS_GPIO_DREQ_PORT			GPIOC											/* GPIO¶Ë¿Ú */
-#define VS_GPIO_DREQ_CLK			RCC_APB2Periph_GPIOC			/* GPIO¶Ë¿ÚÊ±ÖÓ */
-#define VS_DREQ								GPIO_Pin_6								/*¶¨ÒåVS1053µÄDREQ¹Ü½Å*/
+#define VS_GPIO_DREQ_PORT			GPIOC											/* GPIOç«¯å£ */
+#define VS_GPIO_DREQ_CLK			RCC_APB2Periph_GPIOC			/* GPIOç«¯å£æ—¶é’Ÿ */
+#define VS_DREQ								GPIO_Pin_6								/*å®šä¹‰VS1053çš„DREQç®¡è„š*/
 
 #define VS_DREQ_IN						GPIO_ReadInputDataBit(VS_GPIO_DREQ_PORT,VS_DREQ)
 
@@ -36,24 +35,23 @@
 
 #define VS_RST_SET						GPIO_SetBits(VS_GPIO_RST_PORT,VS_RST)
 #define VS_RST_CLR						GPIO_ResetBits(VS_GPIO_RST_PORT,VS_RST)
-//////////////////////////////////////////////////////////////
 
- typedef struct 
+typedef struct
 {							  
-	u8 mvol;		//Ö÷ÒôÁ¿,·¶Î§:0~254
-	u8 bflimit;		//µÍÒôÆµÂÊÏŞ¶¨,·¶Î§:2~15(µ¥Î»:10Hz)
-	u8 bass;		//µÍÒô,·¶Î§:0~15.0±íÊ¾¹Ø±Õ.(µ¥Î»:1dB)
-	u8 tflimit;		//¸ßÒôÆµÂÊÏŞ¶¨,·¶Î§:1~15(µ¥Î»:Khz)
-	u8 treble;		//¸ßÒô,·¶Î§:0~15(µ¥Î»:1.5dB)(Ô­±¾·¶Î§ÊÇ:-8~7,Í¨¹ıº¯ÊıĞŞ¸ÄÁË);
-	u8 effect;		//¿Õ¼äĞ§¹ûÉèÖÃ.0,¹Ø±Õ;1,×îĞ¡;2,ÖĞµÈ;3,×î´ó.
-//	u8 saveflag; 	//±£´æ±êÖ¾,0X0A,±£´æ¹ıÁË;ÆäËû,»¹´ÓÎ´±£´æ	   
-}_vs1053_obj;
+	u8 mvol;		//ä¸»éŸ³é‡,èŒƒå›´:0~254
+	u8 bflimit;		//ä½éŸ³é¢‘ç‡é™å®š,èŒƒå›´:2~15(å•ä½:10Hz)
+	u8 bass;		//ä½éŸ³,èŒƒå›´:0~15.0è¡¨ç¤ºå…³é—­.(å•ä½:1dB)
+	u8 tflimit;		//é«˜éŸ³é¢‘ç‡é™å®š,èŒƒå›´:1~15(å•ä½:Khz)
+	u8 treble;		//é«˜éŸ³,èŒƒå›´:0~15(å•ä½:1.5dB)(åŸæœ¬èŒƒå›´æ˜¯:-8~7,é€šè¿‡å‡½æ•°ä¿®æ”¹äº†);
+	u8 effect;		//ç©ºé—´æ•ˆæœè®¾ç½®.0,å…³é—­;1,æœ€å°;2,ä¸­ç­‰;3,æœ€å¤§.
+//	u8 saveflag; 	//ä¿å­˜æ ‡å¿—,0X0A,ä¿å­˜è¿‡äº†;å…¶ä»–,è¿˜ä»æœªä¿å­˜	   
+} VS_Settings;
 
-extern _vs1053_obj vsset;		//VS1053ÉèÖÃ
+extern VS_Settings vs1053_settings;		//VS1053è®¾ç½®
 
 #define VS_WRITE_COMMAND 	0x02
 #define VS_READ_COMMAND 	0x03
-//VS1053¼Ä´æÆ÷¶¨Òå
+//VS1053å¯„å­˜å™¨å®šä¹‰
 #define SPI_MODE        	0x00   
 #define SPI_STATUS      	0x01   
 #define SPI_BASS        	0x02   
@@ -91,95 +89,85 @@ extern _vs1053_obj vsset;		//VS1053ÉèÖÃ
 #define GPIO_IDATA			0XC018
 #define GPIO_ODATA			0XC019
 
+u16  VS_RD_Reg(u8 address);				//è¯»å¯„å­˜å™¨
+u16  VS_WRAM_Read(u16 addr);	    	//è¯»RAM
+void VS_WRAM_Write(u16 addr,u16 val);	//å†™RAM
+void VS_WR_Data(u8 data);				//å†™æ•°æ®
+void VS_WR_Cmd(u8 address,u16 data);	//å†™å‘½ä»¤
+u8   VS_HD_Reset(void);			    	//ç¡¬å¤ä½
+void VS_Soft_Reset(void);           	//è½¯å¤ä½
 
-
-u16  VS_RD_Reg(u8 address);				//¶Á¼Ä´æÆ÷
-u16  VS_WRAM_Read(u16 addr);	    	//¶ÁRAM
-void VS_WRAM_Write(u16 addr,u16 val);	//Ğ´RAM
-void VS_WR_Data(u8 data);				//Ğ´Êı¾İ
-void VS_WR_Cmd(u8 address,u16 data);	//Ğ´ÃüÁî
-u8   VS_HD_Reset(void);			    	//Ó²¸´Î»
-void VS_Soft_Reset(void);           	//Èí¸´Î»
-u16 VS_Ram_Test(void);             		//RAM²âÊÔ	    
-void VS_Sine_Test(void);            	//ÕıÏÒ²âÊÔ
+void VS_Sine_Test(void);            	//æ­£å¼¦æµ‹è¯•
+u16 VS_Ram_Test(void);             		//RAMæµ‹è¯•
 												
 void VS_SPI_SpeedHigh(void);
 void VS_SPI_SpeedLow(void);
 u8 	 VS_SPI_ReadWriteByte(u8 data);
-void VS_Init(void);						//³õÊ¼»¯VS10XX	 
-void VS_Set_Speed(u8 t);				//ÉèÖÃ²¥·ÅËÙ¶È
-u16  VS_Get_HeadInfo(void);     		//µÃµ½±ÈÌØÂÊ
-u16 VS_Get_ByteRate(void);				//µÃµ½×Ö½ÚËÙÂÊ
-u16 VS_Get_EndFillByte(void);			//µÃµ½Ìî³ä×Ö½Ú
-u8 	 VS_Send_MusicData(u8* buf);		//ÏòVS10XX·¢ËÍ32×Ö½Ú
-void VS_Restart_Play(void);				//ÖØĞÂ¿ªÊ¼ÏÂÒ»Ê×¸è²¥·Å	  
+void VS_Init(void);						//åˆå§‹åŒ–VS10XX	 
+void VS_Set_Speed(u8 t);				//è®¾ç½®æ’­æ”¾é€Ÿåº¦
+u16  VS_Get_HeadInfo(void);     		//å¾—åˆ°æ¯”ç‰¹ç‡
+u16 VS_Get_ByteRate(void);				//å¾—åˆ°å­—èŠ‚é€Ÿç‡
+u16 VS_Get_EndFillByte(void);			//å¾—åˆ°å¡«å……å­—èŠ‚
+u8 	 VS_Send_MusicData(u8* buf);		//å‘VS10XXå‘é€32å­—èŠ‚
+void VS_Restart_Play(void);				//é‡æ–°å¼€å§‹ä¸‹ä¸€é¦–æ­Œæ’­æ”¾	  
 uint8_t VS_MusicJump();
-void VS_Reset_DecodeTime(void);			//ÖØÉè½âÂëÊ±¼ä
-u16  VS_Get_DecodeTime(void);   		//µÃµ½½âÂëÊ±¼ä
+void VS_Reset_DecodeTime(void);			//é‡è®¾è§£ç æ—¶é—´
+u16  VS_Get_DecodeTime(void);   		//å¾—åˆ°è§£ç æ—¶é—´
 
-void VS_Load_Patch(u16 *patch,u16 len);	//¼ÓÔØÓÃ»§patch
-//u8 	 VS_Get_Spec(u16 *p);       		//µÃµ½·ÖÎöÊı¾İ	   
-//void VS_Set_Bands(u16 *buf,u8 bands);	//ÉèÖÃÖĞĞÄÆµÂÊ
-void VS_Set_Vol(u8 volx);				//ÉèÖÃÖ÷ÒôÁ¿   
-void VS_Set_Bass(u8 bfreq,u8 bass,u8 tfreq,u8 treble);//ÉèÖÃ¸ßµÍÒô
-void VS_Set_Effect(u8 eft);				//ÉèÖÃÒôĞ§
+void VS_Load_Patch(u16 *patch,u16 len);	//åŠ è½½ç”¨æˆ·patch
+void VS_Set_Vol(u8 volx);				//è®¾ç½®ä¸»éŸ³é‡   
+void VS_Set_Bass(u8 bfreq,u8 bass,u8 tfreq,u8 treble);//è®¾ç½®é«˜ä½éŸ³
+void VS_Set_Effect(u8 eft);				//è®¾ç½®éŸ³æ•ˆ
 void VS_Set_All(void);
 
-/*--------ÒÔÏÂÊÇÂ¼Òô¹¦ÄÜ------------*/
- //RIFF¿é
 typedef struct
 {
-    u32 ChunkID;		   	//chunk id;ÕâÀï¹Ì¶¨Îª"RIFF",¼´0X46464952
-    u32 ChunkSize ;		   	//¼¯ºÏ´óĞ¡;ÎÄ¼ş×Ü´óĞ¡-8
-    u32 Format;	   			//¸ñÊ½;WAVE,¼´0X45564157
+    u32 ChunkID;		   	//chunk id;è¿™é‡Œå›ºå®šä¸º"RIFF",å³0X46464952
+    u32 ChunkSize;		   	//é›†åˆå¤§å°;æ–‡ä»¶æ€»å¤§å°-8
+    u32 Format;	   			//æ ¼å¼;WAVE,å³0X45564157
 }ChunkRIFF ;
-//fmt¿é
+
 typedef struct
 {
-    u32 ChunkID;		   	//chunk id;ÕâÀï¹Ì¶¨Îª"fmt ",¼´0X20746D66
-    u32 ChunkSize ;		   	//×Ó¼¯ºÏ´óĞ¡(²»°üÀ¨IDºÍSize);ÕâÀïÎª:20.
-    u16 AudioFormat;	  	//ÒôÆµ¸ñÊ½;0X10,±íÊ¾ÏßĞÔPCM;0X11±íÊ¾IMA ADPCM
-	u16 NumOfChannels;		//Í¨µÀÊıÁ¿;1,±íÊ¾µ¥ÉùµÀ;2,±íÊ¾Ë«ÉùµÀ;
-	u32 SampleRate;			//²ÉÑùÂÊ;0X1F40,±íÊ¾8Khz
-	u32 ByteRate;			//×Ö½ÚËÙÂÊ; 
-	u16 BlockAlign;			//¿é¶ÔÆë(×Ö½Ú); 
-	u16 BitsPerSample;		//µ¥¸ö²ÉÑùÊı¾İ´óĞ¡;4Î»ADPCM,ÉèÖÃÎª4
-//	u16 ByteExtraData;		//¸½¼ÓµÄÊı¾İ×Ö½Ú;2¸ö; ÏßĞÔPCM,Ã»ÓĞÕâ¸ö²ÎÊı
-//	u16 ExtraData;			//¸½¼ÓµÄÊı¾İ,µ¥¸ö²ÉÑùÊı¾İ¿é´óĞ¡;0X1F9:505×Ö½Ú  ÏßĞÔPCM,Ã»ÓĞÕâ¸ö²ÎÊı
-}ChunkFMT;	   
-//fact¿é 
-typedef struct 
+    u32 ChunkID;		   	//chunk id;è¿™é‡Œå›ºå®šä¸º"fmt ",å³0X20746D66
+    u32 ChunkSize;		   	//å­é›†åˆå¤§å°(ä¸åŒ…æ‹¬IDå’ŒSize);è¿™é‡Œä¸º:20.
+    u16 AudioFormat;	  	//éŸ³é¢‘æ ¼å¼;0X10,è¡¨ç¤ºçº¿æ€§PCM;0X11è¡¨ç¤ºIMA ADPCM
+	u16 NumOfChannels;		//é€šé“æ•°é‡;1,è¡¨ç¤ºå•å£°é“;2,è¡¨ç¤ºåŒå£°é“;
+	u32 SampleRate;			//é‡‡æ ·ç‡;0X1F40,è¡¨ç¤º8Khz
+	u32 ByteRate;			//å­—èŠ‚é€Ÿç‡; 
+	u16 BlockAlign;			//å—å¯¹é½(å­—èŠ‚); 
+	u16 BitsPerSample;		//å•ä¸ªé‡‡æ ·æ•°æ®å¤§å°;4ä½ADPCM,è®¾ç½®ä¸º4
+}ChunkFMT;
+
+typedef struct
 {
-    u32 ChunkID;		   	//chunk id;ÕâÀï¹Ì¶¨Îª"fact",¼´0X74636166;
-    u32 ChunkSize ;		   	//×Ó¼¯ºÏ´óĞ¡(²»°üÀ¨IDºÍSize);ÕâÀïÎª:4.
-    u32 NumOfSamples;	  	//²ÉÑùµÄÊıÁ¿; 
+    u32 ChunkID;		   	//chunk id;è¿™é‡Œå›ºå®šä¸º"fact",å³0X74636166;
+    u32 ChunkSize ;		   	//å­é›†åˆå¤§å°(ä¸åŒ…æ‹¬IDå’ŒSize);è¿™é‡Œä¸º:4.
+    u32 NumOfSamples;	  	//é‡‡æ ·çš„æ•°é‡; 
 }ChunkFACT;
-//data¿é 
-typedef struct 
+
+typedef struct
 {
-    u32 ChunkID;		   	//chunk id;ÕâÀï¹Ì¶¨Îª"data",¼´0X61746164
-    u32 ChunkSize ;		   	//×Ó¼¯ºÏ´óĞ¡(²»°üÀ¨IDºÍSize);ÎÄ¼ş´óĞ¡-60.
+    u32 ChunkID;		   	//chunk id;è¿™é‡Œå›ºå®šä¸º"data",å³0X61746164
+    u32 ChunkSize ;		   	//å­é›†åˆå¤§å°(ä¸åŒ…æ‹¬IDå’ŒSize);æ–‡ä»¶å¤§å°-60.
 }ChunkDATA;
 
-//wavÍ·
 typedef struct
 { 
-	ChunkRIFF riff;	//riff¿é
-	ChunkFMT fmt;  	//fmt¿é
-	//ChunkFACT fact;	//fact¿é ÏßĞÔPCM,Ã»ÓĞÕâ¸ö½á¹¹Ìå	 
-	ChunkDATA data;	//data¿é		 
-}__WaveHeader; 
+	ChunkRIFF riff;	//riffå—
+	ChunkFMT fmt;  	//fmtå—
+	//ChunkFACT fact;	//factå— çº¿æ€§PCM,æ²¡æœ‰è¿™ä¸ªç»“æ„ä½“	 
+	ChunkDATA data;	//dataå—		 
+} WavHeader;
 
 typedef struct
 {
-	u8 input;						//ÊäÈëÍ¨µÀÑ¡Ôñ.0£ºMICP£¬1£ºLINE1
-	u8 samplerate;			//²ÉÑùËÙÂÊÑ¡Ôñ£¨x*8K£©£º1£º8K£¬2£º16K£¬3£º24K...
-	u8 channel;					//ÉùµÀ£º1£ºË«ÉùµÀ£¬2£º×óÉùµÀ£¬3£ºÓÒÉùµÀ
-	u8 agc;							//ÔöÒæ£º1~64
-}_recorder_obj;
+	u8 input;						//è¾“å…¥é€šé“é€‰æ‹©.0ï¼šMICPï¼Œ1ï¼šLINE1
+	u8 sampleRate;			//é‡‡æ ·é€Ÿç‡é€‰æ‹©ï¼ˆx*8Kï¼‰ï¼š1ï¼š8Kï¼Œ2ï¼š16Kï¼Œ3ï¼š24K...
+	u8 channel;					//å£°é“ï¼š1ï¼šåŒå£°é“ï¼Œ2ï¼šå·¦å£°é“ï¼Œ3ï¼šå³å£°é“
+	u8 agc;							//å¢ç›Šï¼š1~64
+} RecordSetting;
 
-void recoder_enter_rec_mode(_recorder_obj *recset);
-//void recoder_wav_init(__WaveHeader* wavhead);
-/*-----------  ½áÊøÂ¼Òô¹¦ÄÜ -------------------*/
+void VS_StartRecord(RecordSetting *recset);
 
 #endif

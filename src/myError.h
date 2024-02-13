@@ -1,13 +1,13 @@
-#ifndef MYERROR_H
-#define MYERROR_H
+#ifndef MY_ERROR_H
+#define MY_ERROR_H
 
 typedef enum {
     OPERATION_SUCCESS,
     SD_FATFS_MOUNT_ERROR
-} MYERROR;
+} MyError;
 
-MYERROR getLastError();
+MyError getLastError();
 
-void setLastError(MYERROR error);
+void setLastError(MyError error);
 
 #endif

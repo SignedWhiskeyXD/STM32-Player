@@ -2,7 +2,6 @@
 
 #include <string.h>
 #include "states/states.h"
-#include "display.h"
 #include "vs1053/VS1053.h"
 #include "FATFS/ff.h"
 #include "rtos/FreeRTOS.h"
@@ -132,10 +131,10 @@ void taskPlayMusic(void* filepath)
 void playSelectedSong()
 {
     File_State* fileState = useFileState();
-    TCHAR musicFile[MAX_LFN_LENGTH] = "0:/";
+    TCHAR musicFilename[MAX_LFN_LENGTH] = "0:/";
 
     const uint8_t selectedIndex = fileState->filenameBase + fileState->offset;
-    strcpy(musicFile + 3, fileState->filenames[selectedIndex]);
+    strcpy(musicFilename + 3, fileState->filenames[selectedIndex]);
 
     // 如果播放任务还没完成，只是在等待期间阻塞或挂起了，那么需要先行删除
     const eTaskState taskState = eTaskGetState(taskMusicHandler);
@@ -144,7 +143,7 @@ void playSelectedSong()
     
     fileState->nowPlaying = selectedIndex;
     fileState->paused = 0;
-    xTaskCreate(taskPlayMusic, "MusicPlay", 512, musicFile, 3, &taskMusicHandler);
+    xTaskCreate(taskPlayMusic, "MusicPlay", 512, musicFilename, 3, &taskMusicHandler);
 }
 
 uint8_t pauseOrResumeSelectedSong()

@@ -1,4 +1,3 @@
-#include <stdint.h>
 #include <string.h>
 #include "vs1053/VS1053.h"
 #include "FATFS/ff.h"
@@ -13,64 +12,66 @@ static char last_record_pathname[NAMESIZE] = "0:Test_0001.wav";
 #define RECORD_BUFSIZE 512
 
 static FRESULT result;
-static FIL file; /* file objects */
+static FIL recordFile; /* file objects */
 
-static __WaveHeader rechead;
-static _recorder_obj recset = {
-    0,  // MIC
-    1,  // 8K
-    0,  // ×óÉùµÀ
-    6   // ÔöÒæ
+static WavHeader rechead;
+static RecordSetting recset = {
+    0, // MIC
+    1, // 8K
+    0, // å·¦å£°é“
+    6  // å¢ç›Š
 };
 
-uint32_t sectorsize            = 0;
-int8_t tempdata[TEMPDATA_SIZE] = {0};
-uint8_t recording = 1;
+uint32_t sectorSize = 0;
+uint8_t recording   = 1;
+uint8_t recordBuffer[TEMPDATA_SIZE];
+
+TaskHandle_t recordTaskHandler;
 
 void stopRecording()
 {
     UINT bw = 0;
 
-    rechead.riff.ChunkSize = sectorsize * RECORD_BUFSIZE + 36;    // Õû¸öÎÄ¼şµÄ´óĞ¡-8;
-    rechead.data.ChunkSize = sectorsize * RECORD_BUFSIZE;         // Êı¾İ´óĞ¡
-    f_lseek(&file, 0);                                            // Æ«ÒÆµ½ÎÄ¼şÍ·.
-    result = f_write(&file, &rechead, sizeof(__WaveHeader), &bw); // ¸²Ğ´ÈëÍ·Êı¾İ
-    f_close(&file);
-    VS_HD_Reset();   // Ó²¸´Î»
-    VS_Soft_Reset(); // Èí¸´Î»
+    rechead.riff.ChunkSize = sectorSize * RECORD_BUFSIZE + 36;    // æ•´ä¸ªæ–‡ä»¶çš„å¤§å°-8;
+    rechead.data.ChunkSize = sectorSize * RECORD_BUFSIZE;         // æ•°æ®å¤§å°
+    f_lseek(&recordFile, 0);                                            // åç§»åˆ°æ–‡ä»¶å¤´.
+    result = f_write(&recordFile, &rechead, sizeof(WavHeader), &bw); // è¦†å†™å…¥å¤´æ•°æ®
+    f_close(&recordFile);
+    VS_HD_Reset();   // ç¡¬å¤ä½
+    VS_Soft_Reset(); // è½¯å¤ä½
 
-    sectorsize = 0;
+    sectorSize = 0;
 }
 
 void prepareRecorder()
 {
-    memset(tempdata, 0, TEMPDATA_SIZE);
+    memset(recordBuffer, 0, TEMPDATA_SIZE);
     VS_Set_All();
-    recoder_enter_rec_mode(&recset);
+    VS_StartRecord(&recset);
 
-    while (VS_RD_Reg(SPI_HDAT1) >> 8); // µÈµ½buf ½ÏÎª¿ÕÏĞÔÙ¿ªÊ¼
+    while (VS_RD_Reg(SPI_HDAT1) >> 8); // ç­‰åˆ°buf è¾ƒä¸ºç©ºé—²å†å¼€å§‹
 
     rechead.riff.ChunkID      = 0X46464952;                 //"RIFF"
-    rechead.riff.ChunkSize    = 0;                          // »¹Î´È·¶¨,×îºóĞèÒª¼ÆËã
+    rechead.riff.ChunkSize    = 0;                          // è¿˜æœªç¡®å®š,æœ€åéœ€è¦è®¡ç®—
     rechead.riff.Format       = 0X45564157;                 //"WAVE"
     rechead.fmt.ChunkID       = 0X20746D66;                 //"fmt "
-    rechead.fmt.ChunkSize     = 16;                         // ´óĞ¡Îª16¸ö×Ö½Ú
-    rechead.fmt.AudioFormat   = 0X01;                       // 0X01,±íÊ¾PCM;0X01,±íÊ¾IMA ADPCM
-    rechead.fmt.NumOfChannels = 1;                          // µ¥ÉùµÀ
-    rechead.fmt.SampleRate    = recset.samplerate * 8000;   // ²ÉÑùËÙÂÊ
-    rechead.fmt.ByteRate      = rechead.fmt.SampleRate * 2; // 16Î»,¼´2¸ö×Ö½Ú
-    rechead.fmt.BlockAlign    = 2;                          // ¿é´óĞ¡,2¸ö×Ö½ÚÎªÒ»¸ö¿é
-    rechead.fmt.BitsPerSample = 16;                         // 16Î»PCM
+    rechead.fmt.ChunkSize     = 16;                         // å¤§å°ä¸º16ä¸ªå­—èŠ‚
+    rechead.fmt.AudioFormat   = 0X01;                       // 0X01,è¡¨ç¤ºPCM;0X01,è¡¨ç¤ºIMA ADPCM
+    rechead.fmt.NumOfChannels = 1;                          // å•å£°é“
+    rechead.fmt.SampleRate    = recset.sampleRate * 8000;   // é‡‡æ ·é€Ÿç‡
+    rechead.fmt.ByteRate      = rechead.fmt.SampleRate * 2; // 16ä½,å³2ä¸ªå­—èŠ‚
+    rechead.fmt.BlockAlign    = 2;                          // å—å¤§å°,2ä¸ªå­—èŠ‚ä¸ºä¸€ä¸ªå—
+    rechead.fmt.BitsPerSample = 16;                         // 16ä½PCM
     rechead.data.ChunkID      = 0X61746164;                 //"data"
-    rechead.data.ChunkSize    = 0;                          // Êı¾İ´óĞ¡,»¹ĞèÒª¼ÆËã
+    rechead.data.ChunkSize    = 0;                          // æ•°æ®å¤§å°,è¿˜éœ€è¦è®¡ç®—
 
     f_unlink(last_record_pathname);
-    result = f_open(&file, last_record_pathname, FA_CREATE_ALWAYS | FA_WRITE);
+    result = f_open(&recordFile, last_record_pathname, FA_CREATE_ALWAYS | FA_WRITE);
     if (result != 0) {
         return;
     }
     UINT bw = 0;
-    result = f_write(&file, &rechead, sizeof(__WaveHeader), &bw); // Ô¤Ğ´ÈëÍ·Êı¾İ
+    result  = f_write(&recordFile, &rechead, sizeof(WavHeader), &bw); // é¢„å†™å…¥å¤´æ•°æ®
 }
 
 void onStateRecord()
@@ -78,30 +79,29 @@ void onStateRecord()
     prepareRecorder();
 
     while (1) {
-        uint16_t regval = VS_RD_Reg(SPI_HDAT1);
-        uint16_t idx = 0;
-        UINT bw = 0;
+        uint16_t regVal = VS_RD_Reg(SPI_HDAT1);
+        uint16_t idx    = 0;
+        UINT bw         = 0;
 
-        if (regval < 256 || regval >= 896) continue;
+        if (regVal < 256 || regVal >= 896) continue;
 
         taskENTER_CRITICAL();
-        while (idx < RECORD_BUFSIZE) // Ò»´Î¶ÁÈ¡BUFSIZE×Ö½Ú
-        {
-            regval            = VS_RD_Reg(SPI_HDAT0);
-            tempdata[idx]     = regval & 0XFF;
-            tempdata[idx + 1] = regval >> 8;
+        while (idx < RECORD_BUFSIZE) {
+            regVal                = VS_RD_Reg(SPI_HDAT0);
+            recordBuffer[idx]     = regVal & 0XFF;
+            recordBuffer[idx + 1] = regVal >> 8;
             idx += 2;
         }
-        f_lseek(&file, 44 + sectorsize * RECORD_BUFSIZE);
-        
-        result = f_write(&file, tempdata, RECORD_BUFSIZE, &bw); // Ğ´ÈëÎÄ¼ş
+        f_lseek(&recordFile, 44 + sectorSize * RECORD_BUFSIZE);
+
+        result = f_write(&recordFile, recordBuffer, RECORD_BUFSIZE, &bw); // å†™å…¥æ–‡ä»¶
         taskEXIT_CRITICAL();
 
         if (result) {
-            f_close(&file);
-            return; // Ğ´Èë³ö´í.
+            f_close(&recordFile);
+            return; // å†™å…¥å‡ºé”™.
         }
-        sectorsize++; // ÉÈÇøÊıÔö¼Ó1
+        sectorSize++; // æ‰‡åŒºæ•°å¢åŠ 1
 
         vTaskDelay(10);
 
@@ -112,20 +112,18 @@ void onStateRecord()
     }
 }
 
-TaskHandle_t recordTaskHandler;
-
 void taskRecord()
-{   
+{
     onStateRecord();
     vTaskDelete(recordTaskHandler);
 }
 
 void toggleRecord()
 {
-    if(recording == 0){
+    if (recording == 0) {
         recording = 1;
         xTaskCreate(taskRecord, "taskRecord", 512, NULL, 3, &recordTaskHandler);
-    }else{
+    } else {
         recording = 0;
     }
 }

@@ -32,7 +32,7 @@ File_State* useFileState()
     return &ctx;
 }
 
-MYERROR initSD()
+MyError initSD()
 {
     FATFS fs;
     FRESULT res = f_mount(&fs, "0:", 1);

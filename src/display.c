@@ -2,11 +2,8 @@
 
 #include <stdio.h>
 #include "myError.h"
-#include "stm32f10x.h"
 #include "states/states.h"
 #include "oled/OLED.h"
-#include "rtos/FreeRTOS.h"
-#include "rtos/task.h"
 
 void initScreen()
 {

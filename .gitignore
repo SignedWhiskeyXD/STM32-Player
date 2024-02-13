@@ -1,4 +1,5 @@
 # dot files
+.idea
 .vscode
 .cache
 /.settings

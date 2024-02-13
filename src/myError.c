@@ -1,13 +1,13 @@
 #include "myError.h"
 
-MYERROR lastError = OPERATION_SUCCESS;
+MyError lastError = OPERATION_SUCCESS;
 
-MYERROR getLastError()
+MyError getLastError()
 {
     return lastError;
 }
 
-void setLastError(MYERROR error)
+void setLastError(MyError error)
 {
     lastError = error;
 }
