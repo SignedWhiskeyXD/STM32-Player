@@ -1,14 +1,3 @@
-/*
- * ************************************************
- * 
- *              STM32 blink gcc demo
- * 
- *  CPU: STM32F103C8
- *  PIN: PA1
- * 
- * ************************************************
-*/
-
 #include "myError.h"
 #include "states/states.h"
 #include "button.h"
