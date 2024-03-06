@@ -1,0 +1,4 @@
+hal/STM32F10x_StdPeriph_Driver/** linguist-vendored=true
+lib/cmsis/** linguist-vendored=true
+src/*/ linguist-vendored=true
+src/states/ linguist-vendored=false
