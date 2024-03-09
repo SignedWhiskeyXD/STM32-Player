@@ -133,19 +133,19 @@ void OLED_Clear(void)
   */
 void OLED_ShowChar(uint8_t Line, uint8_t Column, signed char Char)
 {      	
-	uint8_t i;
-
 	if(Char < 0) Char = '?';
+
+	const uint16_t fontIndex = (Char - ' ') * 16;
 	
 	OLED_SetCursor((Line - 1) * 2, (Column - 1) * 8);		//设置光标位置在上半部分
-	for (i = 0; i < 8; i++)
+	for (uint8_t i = 0; i < 8; i++)
 	{
-		OLED_WriteData(OLED_F8x16[Char - ' '][i]);			//显示上半部分内容
+		OLED_WriteData(OLED_F8x16[fontIndex + i]);			//显示上半部分内容
 	}
 	OLED_SetCursor((Line - 1) * 2 + 1, (Column - 1) * 8);	//设置光标位置在下半部分
-	for (i = 0; i < 8; i++)
+	for (uint8_t i = 0; i < 8; i++)
 	{
-		OLED_WriteData(OLED_F8x16[Char - ' '][i + 8]);		//显示下半部分内容
+		OLED_WriteData(OLED_F8x16[fontIndex + i + 8]);		//显示下半部分内容
 	}
 }
 
@@ -321,6 +321,43 @@ void OLED_Init(void)
 	OLED_WriteCommand(0xAF);	//开启显示
 		
 	OLED_Clear();				//OLED清屏
+}
+
+void OLED_ShowGBK(uint8_t row, uint8_t col, uint8_t* font)
+{      	
+	OLED_SetCursor(row * 2, col * 8);		//设置光标位置在上半部分
+	for (uint8_t i = 0; i < 16; i++){
+		OLED_WriteData(font[i]);			//显示上半部分内容
+	}
+
+	OLED_SetCursor(row * 2 + 1, col * 8);	//设置光标位置在下半部分
+	for (uint8_t i = 0; i < 16; i++){
+		OLED_WriteData(font[i + 16]);		//显示下半部分内容
+	}
+}
+
+void OLED_ShowGBKString(uint8_t row, uint8_t col, uint8_t padding, char* str, uint8_t* font)
+{	
+	uint8_t* wStr = (uint8_t*) str;
+	uint8_t i = 0;
+	
+	for(; wStr[i] != '\0' && i < padding;) {
+		// ASCII
+		if(wStr[i] < 128) {
+			OLED_ShowChar(row + 1, col + i + 1, wStr[i]);
+			i += 1;
+		}
+		// GBK
+		else{
+			OLED_ShowGBK(row, col + i, font);
+			font += 32;
+			i += 2;
+		}
+	}
+
+	for(; i < padding; ++i) {
+		OLED_ShowChar(row + 1, col + i + 1, ' ');
+	}
 }
 
 void OLED_ShowPaddingString(uint8_t row, uint8_t col, char* str, uint8_t padding)

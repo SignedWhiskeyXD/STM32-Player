@@ -17,12 +17,10 @@ void showStartUp()
 
 void showMenuBrowsing()
 {
-    static const char* menuNames[3] = {"Music Player", "Recorder", "USB Drive"};
-
     const MenuItem selectedMenuItem = getSelectedMenuItem();
-    for(uint8_t i = 0; i < 3; ++i){
+    for(uint8_t i = 0; i < 3; ++i) {
         OLED_ShowChar(i + 1, 1, i == selectedMenuItem ? '>' : ' ');
-        OLED_ShowPaddingString(i, 1, (char*)menuNames[i], 15);
+        OLED_ShowGBKString(i, 1, 15, (char*)getMenuName(i), (uint8_t*)getMenuFonts(i));
     }
 }
 
