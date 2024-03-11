@@ -40,7 +40,8 @@ void showDirectoryBrowsing()
         else
             OLED_ShowChar(i, 0, ' ');
 
-        OLED_ShowPaddingString(i, 1, fileState->filenames[fileState->filenameBase + i], 15);
+        // 文件名使用936页表，GBK编码，在运行时加载字库
+        OLED_ShowGBKString(i, 1, 15, fileState->filenames[fileState->filenameBase + i], NULL);
     }
 }
 

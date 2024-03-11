@@ -129,7 +129,9 @@ void taskPlayMusic(void* filepath)
 
     File_State* fileState = useFileState();
     fileState->nowPlaying = fileState->totalFiles;
+    
     resetMusicState();
+    notifyScreenRefresh();
 
     vTaskDelete(taskMusicHandler);
 }

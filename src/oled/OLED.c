@@ -1,25 +1,26 @@
 #include "oled.h"
+#include "fonts.h"
 #include "OLED_Font.h"
 #include <string.h>
 
 /*引脚配置*/
-#define OLED_W_SCL(x)		GPIO_WriteBit(GPIOA, GPIO_Pin_4, (BitAction)(x))
-#define OLED_W_SDA(x)		GPIO_WriteBit(GPIOA, GPIO_Pin_5, (BitAction)(x))
+#define OLED_W_SCL(x)		GPIO_WriteBit(GPIOD, GPIO_Pin_4, (BitAction)(x))
+#define OLED_W_SDA(x)		GPIO_WriteBit(GPIOD, GPIO_Pin_5, (BitAction)(x))
 
 static uint8_t frameBuffer[8][128];
 
 /*引脚初始化*/
 void OLED_I2C_Init(void)
 {
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOD, ENABLE);
 	
 	GPIO_InitTypeDef GPIO_InitStructure;
  	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_OD;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
- 	GPIO_Init(GPIOA, &GPIO_InitStructure);
+ 	GPIO_Init(GPIOD, &GPIO_InitStructure);
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
- 	GPIO_Init(GPIOA, &GPIO_InitStructure);
+ 	GPIO_Init(GPIOD, &GPIO_InitStructure);
 	
 	OLED_W_SCL(1);
 	OLED_W_SDA(1);
@@ -228,9 +229,14 @@ void OLED_ShowGBKString(uint8_t row, uint8_t col, uint8_t padding, char* str, ui
 			i += 1;
 		}
 		// GBK
-		else{
+		else if(font != NULL) {
 			OLED_ShowGBK(row, col + i, font);
 			font += 32;
+			i += 2;
+		}
+		else {
+			const uint16_t code = (wStr[i] << 8) | wStr[i + 1];
+			OLED_ShowGBK(row, col + i, loadFont(code));
 			i += 2;
 		}
 	}
