@@ -6,6 +6,7 @@
 #include "FATFS/ff.h"
 #include "rtos/FreeRTOS.h"
 #include "rtos/task.h"
+#include "daemon_tasks.h"
 
 uint8_t buffer[BUFSIZE];
 FIL musicFile;
@@ -110,9 +111,14 @@ void taskPlayMusic(void* filepath)
         if (bufferUsed != BUFSIZE || result != FR_OK) {
             break;
         }
-
+        
         musicState->avgByteRate = VS_Get_ByteRate();
-        musicState->decodeTime = VS_Get_DecodeTime();
+
+        const uint16_t currentDecodeTime = VS_Get_DecodeTime();
+        if(currentDecodeTime != musicState->decodeTime){
+            musicState->decodeTime = currentDecodeTime;
+            notifyScreenRefresh();
+        }
 
         if(jumpFlag != 0)
             doMusicJump();

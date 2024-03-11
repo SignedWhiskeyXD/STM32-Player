@@ -2,6 +2,7 @@
 
 #include "states/states.h"
 #include "player.h"
+#include "daemon_tasks.h"
 #include "recorder.h"
 #include "stm32f10x.h"
 
@@ -24,6 +25,7 @@ void onButtonRightClicked();
 void initKeys()
 {
     GPIO_InitTypeDef gpioDef;
+    
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
     gpioDef.GPIO_Mode = GPIO_Mode_IPU;
     gpioDef.GPIO_Pin = GPIO_Pin_5 | GPIO_Pin_6 | GPIO_Pin_7;
@@ -66,6 +68,13 @@ void scanKeys()
         onButtonLeftClicked();
     if(btnFalling[BUTTON_RIGHT])
         onButtonRightClicked();
+    
+    for(uint8_t i = 0; i < BUTTON_NUM; ++i) {
+        if(btnFalling[i]) {
+            notifyScreenRefresh();
+            return;
+        }
+    }
 }
 
 void onButtonUpClicked()

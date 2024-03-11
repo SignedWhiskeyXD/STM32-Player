@@ -5,10 +5,7 @@
 #include "vs1053/VS1053.h"
 #include "rtos/FreeRTOS.h"
 #include "rtos/task.h"
-
-TaskHandle_t taskCreationHandler;
-TaskHandle_t taskKeyScanHandler;
-TaskHandle_t taskScreenHandler;
+#include "daemon_tasks.h"
 
 void initPlayer()
 {
@@ -30,43 +27,11 @@ void initPlayer()
     setGlobalState(BROWSING_MENU);
 }
 
-void taskKeyScan()
-{
-    while(1)
-    {
-        scanKeys();
-        vTaskDelay(10);
-    }
-}
-
-void taskScreenRefresh()
-{
-    while(1)
-    {
-        onScreenRefresh();
-        vTaskDelay(33);
-    }
-}
-
-void taskCreation()
-{
-    taskENTER_CRITICAL();
-
-    xTaskCreate(taskKeyScan, "TaskKeyScan", 512, NULL, 2, &taskKeyScanHandler);
-    xTaskCreate(taskScreenRefresh, "TaskScreen", 512, NULL, 3, &taskScreenHandler);
-
-    vTaskDelete(taskCreationHandler);
-
-    taskEXIT_CRITICAL();
-}
-
 int main()
 {
     initPlayer();
 
-    xTaskCreate(taskCreation, "TaskCreation", 512, NULL, 2, &taskCreationHandler);
-
-    vTaskStartScheduler();
+    launchDaemonTasks();
 
     while (1);
 }
