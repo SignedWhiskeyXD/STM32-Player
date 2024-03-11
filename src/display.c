@@ -19,7 +19,7 @@ void showMenuBrowsing()
 {
     const MenuItem selectedMenuItem = getSelectedMenuItem();
     for(uint8_t i = 0; i < 3; ++i) {
-        OLED_ShowChar(i + 1, 1, i == selectedMenuItem ? '>' : ' ');
+        OLED_ShowChar(i, 0, i == selectedMenuItem ? '>' : ' ');
         OLED_ShowGBKString(i, 1, 15, (char*)getMenuName(i), (uint8_t*)getMenuFonts(i));
     }
 }
@@ -34,11 +34,11 @@ void showDirectoryBrowsing()
 
     for(uint8_t i = 0; i < lines; ++i){
         if(fileState->filenameBase + i == fileState->nowPlaying)
-            OLED_ShowChar(i + 1, 1, fileState->paused ? '-' : '+');
+            OLED_ShowChar(i, 0, fileState->paused ? '-' : '+');
         else if(i == fileState->offset)
-            OLED_ShowChar(i + 1, 1, '>');
+            OLED_ShowChar(i, 0, '>');
         else
-            OLED_ShowChar(i + 1, 1, ' ');
+            OLED_ShowChar(i, 0, ' ');
 
         OLED_ShowPaddingString(i, 1, fileState->filenames[fileState->filenameBase + i], 15);
     }
@@ -55,7 +55,7 @@ void showProgress()
     }
 
     if(musicState->avgByteRate == 0){
-        OLED_ShowPaddingString(3, 2, "Loading...", 13);
+        OLED_ShowPaddingString(3, 2, "Loading...", 14);
         return;
     }
 
@@ -67,7 +67,7 @@ void showProgress()
             musicLength / 60,
             musicLength % 60);
 
-    OLED_ShowString(4, 3, progressBuffer);
+    OLED_ShowString(3, 2, progressBuffer);
 }
 
 void showRecorder()
@@ -115,6 +115,7 @@ void onScreenRefresh()
             break;
     
         default:
-            break;
+            return;
     }
+    OLED_flushScreen();
 }

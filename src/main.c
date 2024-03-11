@@ -3,8 +3,6 @@
 #include "button.h"
 #include "display.h"
 #include "vs1053/VS1053.h"
-#include "rtos/FreeRTOS.h"
-#include "rtos/task.h"
 #include "daemon_tasks.h"
 
 void initPlayer()
