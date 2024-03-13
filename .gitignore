@@ -1,0 +1,18 @@
+# dot files
+.idea
+.vscode
+.cache
+/.settings
+/.eide/log
+/.eide.usr.ctx.json
+
+# project out
+/build
+/make-build
+cmake-*
+
+# eide template
+*.ept
+*.eide-template
+
+compile_commands.json

@@ -1,0 +1,120 @@
+{
+  "name": "MyPlayer",
+  "type": "ARM",
+  "dependenceList": [],
+  "srcDirs": [
+    ".eide/deps",
+    "src",
+    "hal"
+  ],
+  "outDir": "build",
+  "deviceName": "STM32F102C8",
+  "packDir": null,
+  "miscInfo": {
+    "lastBuildTime": 1608695075742,
+    "uid": "e88b6f571db75c4b3ab949b71db7890c"
+  },
+  "virtualFolder": {
+    "name": "<virtual_root>",
+    "files": [],
+    "folders": []
+  },
+  "targets": {
+    "Debug": {
+      "excludeList": [
+        "hal/STM32F10x_StdPeriph_Driver/src/stm32f10x_bkp.c",
+        "hal/STM32F10x_StdPeriph_Driver/src/stm32f10x_can.c",
+        "hal/STM32F10x_StdPeriph_Driver/src/stm32f10x_cec.c",
+        "hal/STM32F10x_StdPeriph_Driver/src/stm32f10x_crc.c",
+        "hal/STM32F10x_StdPeriph_Driver/src/stm32f10x_dac.c",
+        "hal/STM32F10x_StdPeriph_Driver/src/stm32f10x_dbgmcu.c",
+        "hal/STM32F10x_StdPeriph_Driver/src/stm32f10x_flash.c",
+        "hal/STM32F10x_StdPeriph_Driver/src/stm32f10x_fsmc.c",
+        "hal/STM32F10x_StdPeriph_Driver/src/stm32f10x_i2c.c",
+        "hal/STM32F10x_StdPeriph_Driver/src/stm32f10x_iwdg.c",
+        "hal/STM32F10x_StdPeriph_Driver/src/stm32f10x_pwr.c",
+        "hal/STM32F10x_StdPeriph_Driver/src/stm32f10x_rtc.c",
+        "hal/STM32F10x_StdPeriph_Driver/src/stm32f10x_wwdg.c",
+        "src/FATFS/option/cc932.c",
+        "src/FATFS/option/cc949.c",
+        "src/FATFS/option/ccsbcs.c",
+        "src/FATFS/option/cc950.c",
+        "src/FATFS/option/unicode.c",
+        "src/FATFS/option/syscall.c"
+      ],
+      "toolchain": "GCC",
+      "compileConfig": {
+        "cpuType": "Cortex-M3",
+        "floatingPointHardware": "default",
+        "useCustomScatterFile": true,
+        "scatterFilePath": ".\\STM32F103VETX_FLASH.ld",
+        "storageLayout": {
+          "RAM": [
+            {
+              "tag": "IRAM",
+              "id": 1,
+              "mem": {
+                "startAddr": "0x20000000",
+                "size": "0x2800"
+              },
+              "isChecked": "1",
+              "noInit": false
+            }
+          ],
+          "ROM": [
+            {
+              "tag": "IROM",
+              "id": 1,
+              "mem": {
+                "startAddr": "0x08000000",
+                "size": "0x10000"
+              },
+              "isChecked": "1",
+              "isStartup": true
+            }
+          ]
+        },
+        "options": "null"
+      },
+      "uploader": "STLink",
+      "uploadConfig": {
+        "bin": "",
+        "proType": "SWD",
+        "resetMode": "default",
+        "runAfterProgram": true,
+        "speed": 4000,
+        "address": "0x08000000",
+        "elFile": "None",
+        "optionBytes": ".eide/debug.st.option.bytes.ini",
+        "otherCmds": ""
+      },
+      "uploadConfigMap": {
+        "JLink": {
+          "bin": "",
+          "baseAddr": "0x08000000",
+          "cpuInfo": {
+            "vendor": "ST",
+            "cpuName": "STM32F103C8"
+          },
+          "proType": 1,
+          "speed": 8000,
+          "otherCmds": ""
+        }
+      },
+      "custom_dep": {
+        "name": "default",
+        "incList": [
+          ".eide/deps",
+          "lib/cmsis"
+        ],
+        "libList": [],
+        "sourceDirList": [],
+        "defineList": [
+          "USE_STDPERIPH_DRIVER",
+          "STM32F10X_MD"
+        ]
+      }
+    }
+  },
+  "version": "3.3"
+}
