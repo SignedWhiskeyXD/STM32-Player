@@ -1,18 +1,15 @@
 # dot files
-.idea
-.vscode
-.cache
+/.vscode/launch.json
 /.settings
 /.eide/log
 /.eide.usr.ctx.json
 
 # project out
 /build
-/make-build
-cmake-*
+/bin
+/obj
+/out
 
 # eide template
 *.ept
 *.eide-template
-
-compile_commands.json
