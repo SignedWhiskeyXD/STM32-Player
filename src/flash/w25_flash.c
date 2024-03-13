@@ -26,19 +26,12 @@ void FLASH_GPIO_Init()
     SPIx_CLK_ENABLE();
 
     GPIO_InitTypeDef GPIO_InitStruct = {
-        .Pin = SPIx_SCK_PIN,
+        .Pin = SPIx_SCK_PIN | SPIx_MISO_PIN | SPIx_MOSI_PIN,
         .Mode = GPIO_MODE_AF_PP,
         .Pull = GPIO_PULLUP,
         .Speed = GPIO_SPEED_FREQ_HIGH,
     };
-
     HAL_GPIO_Init(SPIx_SCK_GPIO_PORT, &GPIO_InitStruct);
-
-    GPIO_InitStruct.Pin = SPIx_MISO_PIN;
-    HAL_GPIO_Init(SPIx_MISO_GPIO_PORT, &GPIO_InitStruct);
-
-    GPIO_InitStruct.Pin = SPIx_MOSI_PIN;
-    HAL_GPIO_Init(SPIx_MOSI_GPIO_PORT, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin = FLASH_CS_PIN;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
