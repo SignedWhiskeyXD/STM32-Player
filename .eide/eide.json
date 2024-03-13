@@ -71,7 +71,6 @@
         "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rtc_ex.c",
         "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_sd.c",
         "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_smartcard.c",
-        "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_spi.c",
         "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_sram.c",
         "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c",
         "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_timebase_tim_template.c",
