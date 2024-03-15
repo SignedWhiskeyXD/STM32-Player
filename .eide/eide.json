@@ -47,7 +47,6 @@
         "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_crc.c",
         "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_dac.c",
         "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_dac_ex.c",
-        "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_dma.c",
         "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_eth.c",
         "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_exti.c",
         "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash.c",

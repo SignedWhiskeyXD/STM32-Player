@@ -9,7 +9,9 @@ static void SystemClock_Config()
         .OscillatorType = RCC_OSCILLATORTYPE_HSI,
         .HSIState = RCC_HSI_ON,
         .HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT,
-        .PLL.PLLState = RCC_PLL_NONE
+        .PLL.PLLState = RCC_PLL_ON,
+        .PLL.PLLSource = RCC_PLLSOURCE_HSI_DIV2,
+        .PLL.PLLMUL = RCC_PLL_MUL16
     };
     HAL_RCC_OscConfig(&RCC_OscInitStruct);
 
@@ -17,18 +19,18 @@ static void SystemClock_Config()
      */
     RCC_ClkInitTypeDef RCC_ClkInitStruct = {
         .ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2,
-        .SYSCLKSource = RCC_SYSCLKSOURCE_HSI,
+        .SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK,
         .AHBCLKDivider = RCC_SYSCLK_DIV1,
         .APB1CLKDivider = RCC_HCLK_DIV1,
         .APB2CLKDivider = RCC_HCLK_DIV1
     };
-    HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0);
+    HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2);
 }
 
 int main()
 {
     HAL_Init();
-
+    SystemClock_Config();
 
     while (1)
     {
