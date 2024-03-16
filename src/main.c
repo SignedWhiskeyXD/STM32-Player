@@ -1,4 +1,10 @@
 #include "stm32f1xx_hal.h"
+#include "oled/oled.h"
+#include "flash/w25_flash.h"
+#include "display.h"
+#include "button.h"
+#include "daemon_tasks.h"
+#include "states/states.h"
 
 static void SystemClock_Config()
 {
@@ -27,11 +33,36 @@ static void SystemClock_Config()
     HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2);
 }
 
-int main()
+void initPlayer()
 {
     HAL_Init();
     SystemClock_Config();
 
+    initScreen();
+    initKeys();
+    SPI_FLASH_Init();
+
+    MyError error = initSD();
+    if(error != OPERATION_SUCCESS){
+        setLastError(error);
+        setGlobalState(PLAYER_ERROR);
+        return;
+    }
+    loadFiles();
+    
+    // VS_Init();
+    // VS_HD_Reset();
+	// VS_Soft_Reset();
+    
+    setGlobalState(BROWSING_MENU);
+}
+
+int main()
+{
+    initPlayer();
+
+    launchDaemonTasks();
+    
     while (1)
     {
 
