@@ -6,7 +6,8 @@
     ".eide/deps",
     "src",
     "../framework-stm32cubef1/Drivers/CMSIS/Device/ST/STM32F1xx/Source/Templates",
-    "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src"
+    "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src",
+    "lib"
   ],
   "outDir": "build",
   "deviceName": "STM32F102C8",
@@ -57,7 +58,6 @@
         "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_i2s.c",
         "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_irda.c",
         "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_iwdg.c",
-        "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_mmc.c",
         "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_msp_template.c",
         "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_nand.c",
         "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_nor.c",
@@ -68,7 +68,6 @@
         "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc_ex.c",
         "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rtc.c",
         "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rtc_ex.c",
-        "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_sd.c",
         "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_smartcard.c",
         "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_sram.c",
         "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c",
@@ -88,12 +87,12 @@
         "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_ll_pwr.c",
         "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_ll_rcc.c",
         "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_ll_rtc.c",
-        "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_ll_sdmmc.c",
         "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_ll_spi.c",
         "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_ll_tim.c",
         "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_ll_usart.c",
         "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_ll_usb.c",
-        "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_ll_utils.c"
+        "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_ll_utils.c",
+        "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_mmc.c"
       ],
       "toolchain": "GCC",
       "compileConfig": {
@@ -160,7 +159,8 @@
           ".eide/deps",
           "../framework-stm32cubef1/Drivers/STM32F1xx_HAL_Driver/Inc",
           "../framework-stm32cubef1/Drivers/CMSIS/Include",
-          "../framework-stm32cubef1/Drivers/CMSIS/Device/ST/STM32F1xx/Include"
+          "../framework-stm32cubef1/Drivers/CMSIS/Device/ST/STM32F1xx/Include",
+          "lib"
         ],
         "libList": [],
         "sourceDirList": [],
