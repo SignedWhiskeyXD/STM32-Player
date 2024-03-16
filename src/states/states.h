@@ -6,7 +6,7 @@ typedef enum {
     BROWSING_MENU,
     BROWSING_DIR,
     RECORDING,
-    
+
     PLAYER_ERROR
 } GlobalState;
 
@@ -25,7 +25,7 @@ MyError getLastError();
 void setLastError(MyError error);
 
 #include "fileOps.h"
-#include "music.h"
 #include "menu.h"
+#include "music.h"
 
 #endif

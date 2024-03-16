@@ -1,8 +1,7 @@
 #include "states.h"
-#include "display.h"
 
 static GlobalState currentState = PLAYER_START_UP;
-static MyError lastError = OPERATION_SUCCESS;
+static MyError     lastError    = OPERATION_SUCCESS;
 
 GlobalState getGlobalState()
 {
