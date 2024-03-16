@@ -1,6 +1,7 @@
 #include "stm32f1xx_hal.h"
 #include "oled/oled.h"
 #include "flash/w25_flash.h"
+#include "vs1053/vs1053.h"
 #include "display.h"
 #include "button.h"
 #include "daemon_tasks.h"
@@ -50,9 +51,16 @@ void initPlayer()
     }
     loadFiles();
     
-    // VS_Init();
-    // VS_HD_Reset();
-	// VS_Soft_Reset();
+    VS_Init();
+
+    if(VS_Ram_Test() != VS_RAM_TEST_GOOD) {
+        setLastError(VS_RAM_TEST_FAILED);
+        setGlobalState(PLAYER_ERROR);
+        return;
+    }
+
+    VS_HD_Reset();
+	VS_Soft_Reset();
     
     setGlobalState(BROWSING_MENU);
 }

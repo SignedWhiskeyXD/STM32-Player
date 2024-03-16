@@ -1,13 +1,12 @@
 #include "button.h"
 
 #include "states/states.h"
-// #include "player.h"
+#include "player.h"
 #include "daemon_tasks.h"
 // #include "recorder.h"
 #include "stm32f1xx_hal.h"
 
 uint8_t btnHistory[BUTTON_NUM];
-
 uint8_t btnFalling[BUTTON_NUM];
 
 void onButtonUpClicked();
@@ -117,12 +116,12 @@ void onButtonConfirmClicked()
             setGlobalStateFromMenu();
             break;
         }
-        // case BROWSING_DIR: {
-        //     const uint8_t shouldReplay = pauseOrResumeSelectedSong();
-        //     if (shouldReplay)
-        //         playSelectedSong();
-        //     break;
-        // }
+        case BROWSING_DIR: {
+            const uint8_t shouldReplay = pauseOrResumeSelectedSong();
+            if (shouldReplay)
+                playSelectedSong();
+            break;
+        }
         // case RECORDING: {
         //     toggleRecord();
         //     break;
@@ -152,10 +151,10 @@ void onButtonCancelClicked()
 void onButtonLeftClicked()
 {
     switch (getGlobalState()) {
-        // case BROWSING_DIR: {
-        //     setJumpFlag(-1);
-        //     break;
-        // }
+        case BROWSING_DIR: {
+            setJumpFlag(-1);
+            break;
+        }
         default:
             break;
     }
@@ -164,10 +163,10 @@ void onButtonLeftClicked()
 void onButtonRightClicked()
 {
     switch (getGlobalState()) {
-        // case BROWSING_DIR: {
-        //     setJumpFlag(1);
-        //     break;
-        // }
+        case BROWSING_DIR: {
+            setJumpFlag(1);
+            break;
+        }
         default:
             break;
     }

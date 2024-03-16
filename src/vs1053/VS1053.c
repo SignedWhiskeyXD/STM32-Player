@@ -1,5 +1,7 @@
 #include "VS1053.h"
 
+#include <string.h>
+
 // VS1053默认设置参数
 static VS_Settings vs1053_settings = {
     220, // 音量:220
@@ -8,6 +10,16 @@ static VS_Settings vs1053_settings = {
     10,  // 高音下限 10Khz
     15,  // 高音提升 10.5dB
     0,   // 空间效果
+};
+
+// FOR WAV HEAD0 :0X7761 HEAD1:0X7665
+// FOR MIDI HEAD0 :other info HEAD1:0X4D54
+// FOR WMA HEAD0 :data speed HEAD1:0X574D
+// FOR MP3 HEAD0 :data speed HEAD1:ID
+// 比特率预定值,阶层III
+static const uint16_t bitrate[2][16] = {
+    {0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160, 0},
+    {0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320, 0}
 };
 
 static SPI_HandleTypeDef vsSpiHandler;
@@ -43,19 +55,30 @@ inline static void VS_SPI_SetSpeed(uint32_t prescaler)
     HAL_SPI_Init(&vsSpiHandler);
 }
 
-inline static void VS_SPI_SpeedLow()
+inline static void VS_DREQ_Wait()
+{
+    while(HAL_GPIO_ReadPin(VS_GPIO_DREQ_PORT,VS_DREQ) == 0);
+}
+
+static uint16_t VS_WRAM_Read(uint16_t addr)
+{
+    VS_WR_Cmd(SPI_WRAMADDR, addr);
+    return VS_RD_Reg(SPI_WRAM);
+}
+
+static uint16_t VS_Get_EndFillByte()
+{
+    return VS_WRAM_Read(0X1E06); // 填充字节
+}
+
+void VS_SPI_SpeedLow()
 {
     VS_SPI_SetSpeed(SPI_BAUDRATEPRESCALER_32);
 }
 
-inline static void VS_SPI_SpeedHigh()
+void VS_SPI_SpeedHigh()
 {
     VS_SPI_SetSpeed(SPI_BAUDRATEPRESCALER_8);
-}
-
-inline static void VS_DREQ_Wait()
-{
-    while(HAL_GPIO_ReadPin(VS_GPIO_DREQ_PORT,VS_DREQ) == 0);
 }
 
 void VS_SPI_Init()
@@ -92,7 +115,6 @@ void VS_SPI_Init()
     HAL_SPI_Init(&vsSpiHandler);
 }
 
-// 初始化VS1053的IO口
 void VS_Init(void)
 {
     __HAL_RCC_GPIOB_CLK_ENABLE();
@@ -111,15 +133,32 @@ void VS_Init(void)
     HAL_GPIO_Init(VS_GPIO_DREQ_PORT, &gpioInit);
 
     VS_SPI_Init();
+    VS_SPI_SendByte(0xFF);
 }
 
-// 软复位VS10XX
-void VS_Soft_Reset(void)
+void VS_Soft_Reset()
 {
+    VS_DREQ_Wait();
 
+    uint8_t retry = 0;
+    while (VS_RD_Reg(SPI_MODE) != 0x0800) // 软件复位,新模式
+    {
+        VS_WR_Cmd(SPI_MODE, 0x0804); // 软件复位,新模式
+        Delay_ms(2);                 // 等待至少1.35ms
+        if (retry++ > 100) break;
+    }
+
+    VS_DREQ_Wait();
+
+    retry = 0;
+    while (VS_RD_Reg(SPI_CLOCKF) != 0X9800) // 设置VS1053的时钟,3倍频 ,1.5xADD
+    {
+        VS_WR_Cmd(SPI_CLOCKF, 0X9800); // 设置VS1053的时钟,3倍频 ,1.5xADD
+        if (retry++ > 100) break;
+    }
 }
 
-void VS_HD_Reset(void)
+void VS_HD_Reset()
 {
     VS_RST_LOW();
     VS_XDCS_HIGH();
@@ -199,4 +238,186 @@ uint16_t VS_RD_Reg(uint8_t address)
     VS_XCS_HIGH();
     VS_SPI_SpeedHigh();
     return temp;
+}
+
+// 返回码率的大小
+// 返回值：音频流的比特速度 bps
+uint16_t VS_Get_HeadInfo()
+{
+    uint16_t head0 = VS_RD_Reg(SPI_HDAT0);
+    uint16_t head1 = VS_RD_Reg(SPI_HDAT1);
+    switch (head1) {
+        case 0x7665: // WAV格式
+        case 0X4D54: // MIDI格式
+        case 0X4154: // AAC_ADTS
+        case 0X4144: // AAC_ADIF
+        case 0X4D34: // AAC_MP4/M4A
+        case 0X4F67: // OGG
+        case 0X574D: // WMA格式
+        case 0X664C: // FLAC格式
+        {
+            return head0 * 8;
+        }
+        default: // MP3格式,仅做了阶层III的表
+        {
+            head1 >>= 3;
+            head1 = head1 & 0x03;
+            if (head1 == 3)
+                head1 = 1;
+            else
+                head1 = 0;
+            return bitrate[head1][head0 >> 12];
+        }
+    }
+}
+
+uint16_t VS_Get_ByteRate()
+{
+    return VS_WRAM_Read(0X1E05); // 平均位速
+}
+
+// 发送一次音频数据
+// 固定为32字节
+// 返回值:0,发送成功
+//		 1,VS10xx不缺数据,本次数据未成功发送
+uint8_t VS_Send_MusicData(uint8_t *buf)
+{
+    if(HAL_GPIO_ReadPin(VS_GPIO_DREQ_PORT,VS_DREQ) == 0) return 1;
+
+    VS_XDCS_LOW();
+    HAL_SPI_Transmit(&vsSpiHandler, buf, 32, 2000);
+    VS_XDCS_HIGH();
+   
+    return 0;
+}
+
+void VS_Restart_Play()
+{
+    uint16_t temp;
+    uint16_t i;
+    uint8_t vsbuf[32];
+    memset(vsbuf, 0, 32);
+    
+    temp = VS_RD_Reg(SPI_MODE);            // 读取SPI_MODE的内容
+    temp |= 1 << 3;                        // 设置SM_CANCEL位
+    temp |= 1 << 2;                        // 设置SM_LAYER12位,允许播放MP1,MP2
+    VS_WR_Cmd(SPI_MODE, temp);             // 设置取消当前解码指令
+    for (i = 0; i < 2048;)                 // 发送2048个0,期间读取SM_CANCEL位.如果为0,则表示已经取消了当前解码
+    {
+        if (VS_Send_MusicData(vsbuf) != 0) continue;    // 每发送32个字节后检测一次
+        
+        i += 32;                           // 发送了32个字节
+        temp = VS_RD_Reg(SPI_MODE);        // 读取SPI_MODE的内容
+        if ((temp & (1 << 3)) == 0) break; // 成功取消了
+    }
+    if (i < 2048) // SM_CANCEL正常
+    {
+        memset(vsbuf, (uint8_t)VS_Get_EndFillByte(), 32);
+        for (i = 0; i < 2052;) {
+            if (VS_Send_MusicData(vsbuf) == 0) {
+                i += 32;
+            }
+        }
+    } 
+    else
+    {
+        VS_Soft_Reset(); // SM_CANCEL不成功,坏情况,需要软复位
+    }
+    temp = VS_RD_Reg(SPI_HDAT0);
+    temp += VS_RD_Reg(SPI_HDAT1);
+    if (temp) // 软复位,还是没有成功取消,硬复位
+    {
+        VS_HD_Reset();   // 硬复位
+        VS_Soft_Reset(); // 软复位
+    }
+}
+
+uint8_t VS_MusicJump()
+{
+    static uint8_t endFillBuffer[32];
+
+    const uint16_t sciStatus = VS_RD_Reg(SPI_STATUS);
+
+    // 若SCI_NO_JUMP位被设置，则不能快进快倒
+    if (sciStatus >= 0x8000) return 1;
+
+    memset(endFillBuffer, (uint8_t)VS_Get_EndFillByte(), 32);
+
+    for (uint16_t i = 0; i < 2048;) {
+        if (VS_Send_MusicData(endFillBuffer) == 0){
+            i += 32;
+        }
+    }
+
+    return 0;
+}
+
+void VS_Reset_DecodeTime()
+{
+    VS_WR_Cmd(SPI_DECODE_TIME, 0x0000);
+}
+
+uint16_t VS_Get_DecodeTime()
+{
+    return VS_RD_Reg(SPI_DECODE_TIME);
+}
+
+// 设定VS10XX播放的音量和高低音
+// volx:音量大小(0~254)
+void VS_Set_Vol(uint8_t volx)
+{
+    uint16_t volt = 0;          // 暂存音量值
+    volt     = 254 - volx; // 取反一下,得到最大值,表示最大的表示
+    volt <<= 8;
+    volt += 254 - volx;       // 得到音量设置后大小
+    VS_WR_Cmd(SPI_VOL, volt); // 设音量
+}
+
+// 设定高低音控制
+// bfreq:低频上限频率	2~15(单位:10Hz)
+// bass:低频增益			0~15(单位:1dB)
+// tfreq:高频下限频率 	1~15(单位:Khz)
+// treble:高频增益  	 	0~15(单位:1.5dB,小于9的时候为负数)
+void VS_Set_Bass(uint8_t bfreq, uint8_t bass, uint8_t tfreq, uint8_t treble)
+{
+    uint16_t bass_set = 0; // 暂存音调寄存器值
+    signed char temp = 0;
+    if (treble == 0)
+        temp = 0; // 变换
+    else if (treble > 8)
+        temp = treble - 8;
+    else
+        temp = treble - 9;
+    bass_set = temp & 0X0F; // 高音设定
+    bass_set <<= 4;
+    bass_set += tfreq & 0xf; // 高音下限频率
+    bass_set <<= 4;
+    bass_set += bass & 0xf; // 低音设定
+    bass_set <<= 4;
+    bass_set += bfreq & 0xf;       // 低音上限
+    VS_WR_Cmd(SPI_BASS, bass_set); // BASS
+}
+
+// 设定音效
+// eft:0,关闭;1,最小;2,中等;3,最大.
+void VS_Set_Effect(uint8_t eft)
+{
+    uint16_t temp = VS_RD_Reg(SPI_MODE); // 读取SPI_MODE的内容
+    if (eft & 0X01)
+        temp |= 1 << 4; // 设定LO
+    else
+        temp &= ~(1 << 5); // 取消LO
+    if (eft & 0X02)
+        temp |= 1 << 7; // 设定HO
+    else
+        temp &= ~(1 << 7);     // 取消HO
+    VS_WR_Cmd(SPI_MODE, temp); // 设定模式
+}
+
+// 设置音量,音效等.
+void VS_Set_All()
+{
+    VS_Set_Vol(vs1053_settings.mvol); // 设置音量
+    VS_Set_Bass(vs1053_settings.bflimit, vs1053_settings.bass, vs1053_settings.tflimit, vs1053_settings.treble);
+    VS_Set_Effect(vs1053_settings.effect); // 设置空间效果
 }

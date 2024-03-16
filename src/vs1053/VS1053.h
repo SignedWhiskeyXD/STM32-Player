@@ -35,6 +35,7 @@ typedef struct
 	uint8_t effect;		//空间效果设置.0,关闭;1,最小;2,中等;3,最大.
 } VS_Settings;
 
+#define VS_RAM_TEST_GOOD	0x83FF
 
 #define VS_WRITE_COMMAND 	0x02
 #define VS_READ_COMMAND 	0x03
@@ -76,10 +77,7 @@ typedef struct
 #define GPIO_IDATA			0XC018
 #define GPIO_ODATA			0XC019
 
-uint16_t  VS_RD_Reg(uint8_t address);				//读寄存器
-uint16_t  VS_WRAM_Read(uint16_t addr);	    	//读RAM
-void VS_WRAM_Write(uint16_t addr,uint16_t val);	//写RAM
-void VS_WR_Data(uint8_t data);				//写数据
+uint16_t VS_RD_Reg(uint8_t address);				//读寄存器
 void VS_WR_Cmd(uint8_t address,uint16_t data);	//写命令
 void VS_HD_Reset();			    	//硬复位
 void VS_Soft_Reset();           	//软复位
@@ -88,17 +86,18 @@ void VS_Sine_Test(uint16_t duration_ms);            	//正弦测试
 uint16_t VS_Ram_Test();             		//RAM测试
 												
 void VS_Init();						//初始化VS10XX	 
-void VS_Set_Speed(uint8_t t);				//设置播放速度
+
+void VS_SPI_SpeedLow();
+void VS_SPI_SpeedHigh();
+
 uint16_t  VS_Get_HeadInfo();     		//得到比特率
 uint16_t VS_Get_ByteRate();				//得到字节速率
-uint16_t VS_Get_EndFillByte();			//得到填充字节
-uint8_t 	 VS_Send_MusicData(uint8_t* buf);		//向VS10XX发送32字节
+uint8_t	VS_Send_MusicData(uint8_t* buf);		//向VS10XX发送32字节
 void VS_Restart_Play();				//重新开始下一首歌播放	  
 uint8_t VS_MusicJump();
 void VS_Reset_DecodeTime();			//重设解码时间
 uint16_t  VS_Get_DecodeTime();   		//得到解码时间
 
-void VS_Load_Patch(uint16_t *patch,uint16_t len);	//加载用户patch
 void VS_Set_Vol(uint8_t volx);				//设置主音量   
 void VS_Set_Bass(uint8_t bfreq,uint8_t bass,uint8_t tfreq,uint8_t treble);//设置高低音
 void VS_Set_Effect(uint8_t eft);				//设置音效

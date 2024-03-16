@@ -60,14 +60,18 @@ void showProgress()
     }
 
     const uint16_t musicLength = musicState->musicSize / musicState->avgByteRate;
-    const uint16_t currentProgress = musicState->decodeTime + musicState->offsetTime;
+    uint16_t currentProgress = 0;
+    if(musicState->offsetTime >= 0 || musicState->decodeTime > -(musicState->offsetTime)) {
+        currentProgress = musicState->decodeTime + musicState->offsetTime;
+    }
+
     sprintf(progressBuffer, "%02d:%02d/%02d:%02d",
             currentProgress / 60,
             currentProgress % 60,
             musicLength / 60,
             musicLength % 60);
 
-    OLED_ShowString(3, 2, progressBuffer);
+    OLED_ShowPaddingString(3, 2, progressBuffer, 14);
 }
 
 void showRecorder()
@@ -82,6 +86,11 @@ void showError()
     switch (getLastError()) {
         case SD_FATFS_MOUNT_ERROR:
             OLED_ShowPaddingString(0, 0, "SD Mount Failed", 16);
+            break;
+
+        case VS_RAM_TEST_FAILED:
+            OLED_ShowPaddingString(0, 0, "VS1053 Error:", 16);
+            OLED_ShowPaddingString(1, 0, "Ram Test Failed", 16);
             break;
 
         default:

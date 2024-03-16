@@ -12,7 +12,8 @@ typedef enum {
 
 typedef enum {
     OPERATION_SUCCESS,
-    SD_FATFS_MOUNT_ERROR
+    SD_FATFS_MOUNT_ERROR,
+    VS_RAM_TEST_FAILED
 } MyError;
 
 GlobalState getGlobalState();
