@@ -9,6 +9,7 @@
 /bin
 /obj
 /out
+/cmake-*
 
 # eide template
 *.ept
