@@ -1,19 +1,19 @@
 #ifndef FILEOPS_H
 #define FILEOPS_H
 
-#include <stdint.h>
-#include "stm32f1xx_hal.h"
 #include "FatFs/ff.h"
 #include "states.h"
+#include "stm32f1xx_hal.h"
+#include <stdint.h>
 
 #define MAX_FILE_LIST_LENGTH 32
 
-#define MAX_LFN_LENGTH 64
+#define MAX_LFN_LENGTH       64
 
-#define DIR_MAX_LINES 3
+#define DIR_MAX_LINES        3
 
 typedef struct {
-    
+
     // 当前已读取的目录文件名
     TCHAR filenames[MAX_FILE_LIST_LENGTH][MAX_LFN_LENGTH];
 

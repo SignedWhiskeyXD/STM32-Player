@@ -3,14 +3,14 @@
 
 #include <stdint.h>
 
-#define BUFSIZE	4096
+#define BUFSIZE 4096
 
-void playSelectedSong();
+void    playSelectedSong();
 
 uint8_t pauseOrResumeSelectedSong();
 
-void setJumpFlag(int8_t direction);
+void    setJumpFlag(int8_t direction);
 
-void cancelPlayerTask();
+void    cancelPlayerTask();
 
 #endif
