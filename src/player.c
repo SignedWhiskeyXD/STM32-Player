@@ -96,12 +96,7 @@ void taskPlayMusic(void* filepath)
     VS_SPI_SpeedHigh();
     while (1) {
         UINT bufferUsed;
-
-        // 必须确保SDIO操作是原子的
-        taskENTER_CRITICAL();
         result = f_read(&musicFile, buffer, BUFSIZE, &bufferUsed);
-        taskEXIT_CRITICAL();
-
         doBufferTransfer(bufferUsed);
 
         if (bufferUsed != BUFSIZE || result != FR_OK) {

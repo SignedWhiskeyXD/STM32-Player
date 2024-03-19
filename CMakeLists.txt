@@ -53,7 +53,7 @@ include_directories(src lib lib/cmsis lib/hal/include)
 
 add_definitions(-DUSE_HAL_DRIVER -DSTM32F10X_HD -DSTM32F103xE)
 
-file(GLOB_RECURSE SOURCES "src/*.*" "lib/*.*")
+file(GLOB_RECURSE SOURCES "src/*.*" "lib/hal/*.*" "lib/FatFs/*.*" "lib/cmsis/*.*" "lib/rtos/*.*" "lib/lvgl/src/*.*")
 
 set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/STM32F103VETX_FLASH.ld)
 

@@ -58,7 +58,6 @@
 
 void SPI_FLASH_Init(void);
 void SPI_FLASH_BufferRead(uint8_t *pBuffer, uint32_t ReadAddr, uint16_t NumByteToRead);
-void flashAsyncBufferRead(uint8_t *buffer, uint32_t readAddr, uint16_t bufferSize);
 uint32_t SPI_FLASH_ReadID(void);
 uint32_t SPI_FLASH_ReadDeviceID(void);
 
