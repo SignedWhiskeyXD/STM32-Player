@@ -10,7 +10,7 @@
 #define LCD_SELECT_DATA()   HAL_GPIO_WritePin(GPIOD, LCD_DCX_Pin, GPIO_PIN_SET)
 #define LCD_SELECT_COMMAND()  HAL_GPIO_WritePin(GPIOD, LCD_DCX_Pin, GPIO_PIN_RESET)
 
-extern lv_display_t* lcd_disp;
+lv_display_t* lcd_disp;
 
 static SPI_HandleTypeDef lcdHandle;
 static DMA_HandleTypeDef lcdRxHandle;
@@ -44,7 +44,7 @@ void lcdDMAInit()
     lcdRxHandle.Init.Priority = DMA_PRIORITY_MEDIUM;
     HAL_DMA_Init(&lcdRxHandle);
 
-    HAL_NVIC_SetPriority(DMA1_Channel2_IRQn, 0, 0);
+    HAL_NVIC_SetPriority(DMA1_Channel2_IRQn, LCD_IRQ_PRIORITY, 0);
     HAL_NVIC_EnableIRQ(DMA1_Channel2_IRQn);
 
     __HAL_LINKDMA(&lcdHandle, hdmarx, lcdRxHandle);
@@ -56,10 +56,10 @@ void lcdDMAInit()
     lcdTxHandle.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
     lcdTxHandle.Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
     lcdTxHandle.Init.Mode = DMA_NORMAL;
-    lcdTxHandle.Init.Priority = DMA_PRIORITY_VERY_HIGH;
+    lcdTxHandle.Init.Priority = DMA_PRIORITY_MEDIUM;
     HAL_DMA_Init(&lcdTxHandle);
 
-    HAL_NVIC_SetPriority(DMA1_Channel3_IRQn, 0, 0);
+    HAL_NVIC_SetPriority(DMA1_Channel3_IRQn, LCD_IRQ_PRIORITY, 0);
     HAL_NVIC_EnableIRQ(DMA1_Channel3_IRQn);
 
     __HAL_LINKDMA(&lcdHandle, hdmatx, lcdTxHandle);
@@ -105,6 +105,9 @@ HAL_StatusTypeDef lcdInit()
 
     HAL_GPIO_WritePin(GPIOD, LCD_CS_Pin, GPIO_PIN_SET);
     HAL_GPIO_WritePin(GPIOD, LCD_DCX_Pin, GPIO_PIN_SET);
+
+    HAL_NVIC_SetPriority(SPI1_IRQn, LCD_IRQ_PRIORITY, 0);
+    HAL_NVIC_EnableIRQ(SPI1_IRQn);
 
     HAL_SPI_Init(&lcdHandle);
     lcdDMAInit();

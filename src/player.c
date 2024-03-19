@@ -96,7 +96,12 @@ void taskPlayMusic(void* filepath)
     VS_SPI_SpeedHigh();
     while (1) {
         UINT bufferUsed;
+
+        /* 必须屏蔽LCD的DMA传输完成回调中断，不可打断SDIO操作，否则读取会出错 */
+        taskENTER_CRITICAL();
         result = f_read(&musicFile, buffer, BUFSIZE, &bufferUsed);
+        taskEXIT_CRITICAL();
+
         doBufferTransfer(bufferUsed);
 
         if (bufferUsed != BUFSIZE || result != FR_OK) {

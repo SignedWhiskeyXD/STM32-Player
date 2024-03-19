@@ -76,13 +76,13 @@ DSTATUS disk_initialize(
     DSTATUS status = STA_NOINIT;
 
     switch (pdrv) {
-        case ATA: /* SD CARD */
+        case ATA: /* SD CARD */ {
             HAL_StatusTypeDef initStatus = sdInit();
             initStatus |= HAL_SD_GetCardInfo(&sdHandle, &sdInfo);
 
             status = initStatus == HAL_OK ? 0 : STA_NOINIT;
             break;
-
+        }
         default:
             status = STA_NODISK;
             break;
@@ -100,11 +100,11 @@ DRESULT disk_read(
     DRESULT status    = RES_PARERR;
 
     switch (pdrv) {
-        case ATA: /* SD CARD */
+        case ATA: /* SD CARD */{
             const HAL_StatusTypeDef readStatus = HAL_SD_ReadBlocks(&sdHandle, buff, sector, count, 2000);
             status = (readStatus == HAL_OK) ? RES_OK : RES_ERROR;
             break;
-
+        }
         default:
             break;
     }

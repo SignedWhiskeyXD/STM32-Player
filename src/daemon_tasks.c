@@ -2,16 +2,19 @@
 
 #include "button.h"
 #include "display.h"
+#include "lvgl/lvgl.h"
 #include "rtos/FreeRTOS.h"
 #include "rtos/task.h"
 
 static const char* taskNameKeyScan  = "TaskKeyScan";
 static const char* taskNameScreen   = "TaskScreen";
 static const char* taskNameCreation = "TaskCreation";
+static const char* taskNameLVGL = "TaskLVGL";
 
 static TaskHandle_t taskCreationHandler;
 static TaskHandle_t taskKeyScanHandler;
 static TaskHandle_t taskScreenHandler;
+static TaskHandle_t taskLVGLHandler;
 
 void taskKeyScan()
 {
@@ -29,12 +32,21 @@ void taskScreenRefresh()
     }
 }
 
+void taskTFT()
+{
+    while (1) {
+        lv_timer_handler();
+        vTaskDelay(100);
+    }
+}
+
 void taskCreation()
 {
     taskENTER_CRITICAL();
 
     xTaskCreate(taskKeyScan, taskNameKeyScan, 512, NULL, 2, &taskKeyScanHandler);
     xTaskCreate(taskScreenRefresh, taskNameScreen, 512, NULL, 3, &taskScreenHandler);
+    xTaskCreate(taskTFT, taskNameLVGL, 1024, NULL, 4, &taskLVGLHandler);
 
     notifyScreenRefresh();
 
