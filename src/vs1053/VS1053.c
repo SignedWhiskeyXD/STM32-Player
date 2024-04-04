@@ -22,6 +22,16 @@ static const uint16_t bitrate[2][16] = {
     {0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320, 0}
 };
 
+// VS1053的WAV录音有bug,这个plugin可以修正这个问题
+static const uint16_t wav_plugin[40] =                                  /* Compressed plugin */
+    {
+        0x0007, 0x0001, 0x8010, 0x0006, 0x001c, 0x3e12, 0xb817, 0x3e14, /* 0 */
+        0xf812, 0x3e01, 0xb811, 0x0007, 0x9717, 0x0020, 0xffd2, 0x0030, /* 8 */
+        0x11d1, 0x3111, 0x8024, 0x3704, 0xc024, 0x3b81, 0x8024, 0x3101, /* 10 */
+        0x8024, 0x3b81, 0x8024, 0x3f04, 0xc024, 0x2808, 0x4800, 0x36f1, /* 18 */
+        0x9811, 0x0007, 0x0001, 0x8028, 0x0006, 0x0002, 0x2a00, 0x040e,
+};
+
 static SPI_HandleTypeDef vsSpiHandler;
 
 #define Delay_ms(x)    HAL_Delay(x)
@@ -420,4 +430,45 @@ void VS_Set_All()
     VS_Set_Vol(vs1053_settings.mvol);      // 设置音量
     VS_Set_Bass(vs1053_settings.bflimit, vs1053_settings.bass, vs1053_settings.tflimit, vs1053_settings.treble);
     VS_Set_Effect(vs1053_settings.effect); // 设置空间效果
+}
+
+void VS_Load_Patch(uint16_t* patch, uint16_t len)
+{
+    uint16_t i;
+    uint16_t addr, n, val;
+    for (i = 0; i < len;) {
+        addr = patch[i++];
+        n    = patch[i++];
+        if (n & 0x8000U) // RLE run, replicate n samples
+        {
+            n &= 0x7FFF;
+            val = patch[i++];
+            while (n--) VS_WR_Cmd(addr, val);
+        } else // copy run, copy n sample
+        {
+            while (n--) {
+                val = patch[i++];
+                VS_WR_Cmd(addr, val);
+            }
+        }
+    }
+}
+
+// 激活PCM 录音模式
+// agc:0,自动增益.1024相当于1倍,512相当于0.5倍,最大值65535=64倍
+void VS_StartRecord(RecordSetting* recset)
+{
+    // 如果是IMA ADPCM,采样率计算公式如下:
+    // 采样率=CLKI/256*d;
+    // 假设d=0,并2倍频,外部晶振为12.288M.那么Fc=(2*12288000)/256*6=16Khz
+    // 如果是线性PCM,采样率直接就写采样值
+    VS_WR_Cmd(SPI_BASS, 0x0000);
+    VS_WR_Cmd(SPI_AICTRL0, recset->sampleRate * 8000); // 设置采样率
+    VS_WR_Cmd(SPI_AICTRL1, recset->agc * 1024 / 2); // 设置增益,0,自动增益.1024相当于1倍,512相当于0.5倍,最大值65535=64倍
+    VS_WR_Cmd(SPI_AICTRL2, 0);                      // 设置增益最大值,0,代表最大值65536=64X
+    VS_WR_Cmd(SPI_AICTRL3, 6 + recset->channel); // 4：线性PCM模式 + 2： 左通道 3： 右通道
+    VS_WR_Cmd(SPI_CLOCKF, 0X2000);               // 设置VS10XX的时钟,MULT:2倍频;ADD:不允许;CLK:12.288Mhz
+    VS_WR_Cmd(SPI_MODE, 0x1804 | (recset->input << 14)); // MIC,录音激活
+    Delay_ms(5);                                         // 等待至少1.35ms
+    VS_Load_Patch((uint16_t*) wav_plugin, 40);           // VS1053的WAV录音需要patch
 }

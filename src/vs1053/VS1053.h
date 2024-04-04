@@ -72,6 +72,13 @@ typedef struct {
     uint8_t effect;  // 空间效果设置.0,关闭;1,最小;2,中等;3,最大.
 } VS_Settings;
 
+typedef struct {
+    uint8_t input;      // 输入通道选择.0：MICP，1：LINE1
+    uint8_t sampleRate; // 采样速率选择（x*8K）：1：8K，2：16K，3：24K...
+    uint8_t channel;    // 声道：1：双声道，2：左声道，3：右声道
+    uint8_t agc;        // 增益：1~64
+} RecordSetting;
+
 uint16_t VS_RD_Reg(uint8_t address);                // 读寄存器
 void     VS_WR_Cmd(uint8_t address, uint16_t data); // 写命令
 void     VS_HD_Reset();                             // 硬复位
@@ -98,5 +105,9 @@ void VS_Set_Bass(uint8_t bfreq, uint8_t bass, uint8_t tfreq,
                  uint8_t treble);         // 设置高低音
 void VS_Set_Effect(uint8_t eft);          // 设置音效
 void VS_Set_All();
+
+void VS_Load_Patch(uint16_t *patch,uint16_t len);	//加载用户patch
+
+void VS_StartRecord(RecordSetting* recset);
 
 #endif

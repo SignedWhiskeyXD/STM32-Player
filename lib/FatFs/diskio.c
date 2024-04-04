@@ -19,15 +19,15 @@ void SD_GPIO_init()
     /* Enable GPIOs clock */
     __HAL_RCC_GPIOC_CLK_ENABLE();
     __HAL_RCC_GPIOD_CLK_ENABLE();
-    
+
     /* Common GPIO configuration */
     gpioinitstruct.Mode      = GPIO_MODE_AF_PP;
     gpioinitstruct.Pull      = GPIO_PULLUP;
     gpioinitstruct.Speed     = GPIO_SPEED_FREQ_HIGH;
-    
+
     /* GPIOC configuration */
     gpioinitstruct.Pin = GPIO_PIN_8 | GPIO_PIN_9 | GPIO_PIN_10 | GPIO_PIN_11 | GPIO_PIN_12;
-    
+
     HAL_GPIO_Init(GPIOC, &gpioinitstruct);
 
     /* GPIOD configuration */
@@ -49,6 +49,13 @@ HAL_StatusTypeDef sdInit()
     sdHandle.Init.ClockDiv            = SDIO_TRANSFER_CLK_DIV;
 
     return HAL_SD_Init(&sdHandle);
+}
+
+static void cardStatePolling(HAL_SD_CardStateTypeDef cardState)
+{
+    while (HAL_SD_GetCardState(&sdHandle) == cardState) {
+        HAL_Delay(2);
+    }
 }
 
 DSTATUS disk_status(
@@ -120,47 +127,19 @@ DRESULT disk_write(
 )
 {
     DRESULT status    = RES_PARERR;
-    SD_Error SD_state = SD_OK;
-
-    if (!count) {
-        return RES_PARERR; /* Check parameter */
-    }
 
     switch (pdrv) {
-        case ATA: /* SD CARD */
-            if ((DWORD)buff & 3) {
-                DRESULT res = RES_OK;
-                DWORD scratch[SD_BLOCKSIZE / 4];
-
-                while (count--) {
-                    memcpy(scratch, buff, SD_BLOCKSIZE);
-                    res = disk_write(ATA, (void *)scratch, sector++, 1);
-                    if (res != RES_OK) {
-                        break;
-                    }
-                    buff += SD_BLOCKSIZE;
-                }
-                return res;
-            }
-
-            SD_state = SD_WriteMultiBlocks((uint8_t *)buff, (uint64_t)sector * SD_BLOCKSIZE, SD_BLOCKSIZE, count);
-            if (SD_state == SD_OK) {
-                /* Check if the Transfer is finished */
-                SD_state = SD_WaitWriteOperation();
-
-                /* Wait until end of DMA transfer */
-                while (SD_GetStatus() != SD_TRANSFER_OK)
-                    ;
-            }
-            if (SD_state != SD_OK)
-                status = RES_PARERR;
-            else
-                status = RES_OK;
+        case ATA: {
+            const HAL_StatusTypeDef writeStatus = HAL_SD_WriteBlocks(&sdHandle, (uint8_t*) buff, sector, count, 2000);
+            /* 确保上一次的写入操作已完成 */
+            cardStatePolling(HAL_SD_CARD_PROGRAMMING);
+            status = (writeStatus == HAL_OK) ? RES_OK : RES_ERROR;
             break;
-
+        }
         default:
-            status = RES_PARERR;
+            break;
     }
+
     return status;
 }
 #endif
@@ -189,7 +168,7 @@ DRESULT disk_ioctl(
                 case GET_SECTOR_COUNT:
                     *(DWORD *)buff = sdInfo.BlockNbr;
                     break;
-                
+
                 default:
                     status = RES_ERROR;
                     break;

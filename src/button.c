@@ -2,8 +2,8 @@
 
 #include "daemon_tasks.h"
 #include "player.h"
+#include "recorder.h"
 #include "states/states.h"
-// #include "recorder.h"
 #include "stm32f1xx_hal.h"
 
 uint8_t btnHistory[BUTTON_NUM];
@@ -114,10 +114,10 @@ void onButtonConfirmClicked()
             if (shouldReplay) playSelectedSong();
             break;
         }
-        // case RECORDING: {
-        //     toggleRecord();
-        //     break;
-        // }
+        case RECORDING: {
+            toggleRecord();
+            break;
+        }
         default:
             break;
     }
@@ -130,11 +130,11 @@ void onButtonCancelClicked()
             setGlobalState(BROWSING_MENU);
             break;
         }
-        // case RECORDING: {
-        //     stopRecorder();
-        //     setGlobalState(BROWSING_MENU);
-        //     break;
-        // }
+        case RECORDING: {
+            stopRecorder();
+            setGlobalState(BROWSING_MENU);
+            break;
+        }
         default:
             break;
     }

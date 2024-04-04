@@ -45,7 +45,8 @@ void showDirectoryBrowsing()
 
 void showProgress()
 {
-    static char       progressBuffer[17];
+    static char progressBuffer[17];
+
     const MusicState* musicState = useMusicState();
 
     if (musicState->musicSize == 0) {
@@ -89,6 +90,7 @@ void showError()
             break;
 
         default:
+            OLED_ShowPaddingString(0, 0, "Unknown Error", 16);
             break;
     }
 }
