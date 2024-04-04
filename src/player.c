@@ -8,13 +8,39 @@
 #include "vs1053/vs1053.h"
 #include <string.h>
 
-uint8_t buffer[BUFSIZE];
-FIL musicFile;
-int8_t jumpFlag = 0;
+static uint8_t* buffer    = NULL;
+static FIL*     musicFile = NULL;
+static int8_t   jumpFlag  = 0;
 
-TaskHandle_t taskMusicHandler = NULL;
+static TaskHandle_t taskMusicHandler = NULL;
 
-void doBufferTransfer(UINT bufferLength)
+static uint8_t allocateMusicBuffer()
+{
+    /* 已分配内存则无需分配，发生于切歌时 */
+    if (buffer != NULL && musicFile != NULL) return 0;
+
+    if (musicFile == NULL) {
+        if ((musicFile = pvPortMalloc(sizeof(FIL))) == NULL) return 1;
+        memset(musicFile, 0, sizeof(FIL));
+    }
+
+    if (buffer == NULL) {
+        if ((buffer = pvPortMalloc(BUFSIZE)) == NULL) return 1;
+        memset(buffer, 0, BUFSIZE);
+    }
+
+    return 0;
+}
+
+static void freePlayerBuffer()
+{
+    vPortFree(musicFile);
+    vPortFree(buffer);
+    musicFile = NULL;
+    buffer    = NULL;
+}
+
+static void doBufferTransfer(UINT bufferLength)
 {
     uint16_t offset = 0;
     while (offset < bufferLength) {
@@ -27,25 +53,25 @@ void doBufferTransfer(UINT bufferLength)
     }
 }
 
-uint32_t getMusicHeaderSize()
+static uint32_t getMusicHeaderSize()
 {
     /*
         对于MP3音频，除了文件尾部的ID2标签外，也有可能会在文件首部包含ID3标签
         ID3标签包含了很多元信息，包括曲目的封面图片，这些数据对硬件解码而言是无用的
         应当从ID3首部中计算出首部长度，得出文件指针偏移量，免得浪费时间
     */
-    UINT bufferUsed;
-    FRESULT res = f_read(&musicFile, buffer, 10, &bufferUsed);
+    UINT    bufferUsed;
+    FRESULT res = f_read(musicFile, buffer, 10, &bufferUsed);
 
     if (res != FR_OK || bufferUsed != 10 || strncmp((char*) buffer, "ID3", 3) != 0) return 0;
 
     uint32_t headerLength = 0;
     for (uint8_t i = 0; i < 4; ++i) headerLength |= (buffer[i + 6] << (21 - i * 7));
 
-    return headerLength > musicFile.fsize ? 0 : headerLength;
+    return headerLength > musicFile->fsize ? 0 : headerLength;
 }
 
-void doMusicJump()
+static void doMusicJump()
 {
     taskENTER_CRITICAL();
     if (VS_MusicJump() != 0) {
@@ -54,17 +80,17 @@ void doMusicJump()
     }
 
     MusicState* musicState = useMusicState();
-    uint32_t absDelta      = musicState->avgByteRate * 5; // 进/退5秒钟
+    uint32_t    absDelta   = musicState->avgByteRate * 5; // 进/退5秒钟
 
     if (jumpFlag > 0) {
-        f_lseek(&musicFile, musicFile.fptr + absDelta);
+        f_lseek(musicFile, musicFile->fptr + absDelta);
         musicState->offsetTime += 5;
-    } else if (jumpFlag < 0 && absDelta <= musicFile.fptr) {
-        f_lseek(&musicFile, musicFile.fptr - absDelta);
+    } else if (jumpFlag < 0 && absDelta <= musicFile->fptr) {
+        f_lseek(musicFile, musicFile->fptr - absDelta);
         musicState->offsetTime -= 5;
     } else if (jumpFlag < 0) {
         // 倒回开始了，不如直接重设解码时间
-        f_lseek(&musicFile, musicFile.fsize - musicState->musicSize);
+        f_lseek(musicFile, musicFile->fsize - musicState->musicSize);
         musicState->offsetTime = 0;
         VS_Reset_DecodeTime();
     }
@@ -79,7 +105,7 @@ void taskPlayMusic(void* filepath)
     VS_Set_All();
     VS_Reset_DecodeTime();
 
-    FRESULT result = f_open(&musicFile, (const TCHAR*) filepath, FA_READ);
+    FRESULT result = f_open(musicFile, (const TCHAR*) filepath, FA_READ);
 
     if (result != FR_OK) {
         vTaskDelete(taskMusicHandler);
@@ -90,8 +116,8 @@ void taskPlayMusic(void* filepath)
     resetMusicState();
 
     uint32_t headerLength = getMusicHeaderSize();
-    f_lseek(&musicFile, headerLength);
-    musicState->musicSize = musicFile.fsize - headerLength;
+    f_lseek(musicFile, headerLength);
+    musicState->musicSize = musicFile->fsize - headerLength;
 
     VS_SPI_SpeedHigh();
     while (1) {
@@ -99,7 +125,7 @@ void taskPlayMusic(void* filepath)
 
         /* 必须屏蔽LCD的DMA传输完成回调中断，不可打断SDIO操作，否则读取会出错 */
         taskENTER_CRITICAL();
-        result = f_read(&musicFile, buffer, BUFSIZE, &bufferUsed);
+        result = f_read(musicFile, buffer, BUFSIZE, &bufferUsed);
         taskEXIT_CRITICAL();
 
         doBufferTransfer(bufferUsed);
@@ -120,7 +146,7 @@ void taskPlayMusic(void* filepath)
 
         vTaskDelay(20);
     }
-    f_close(&musicFile);
+    f_close(musicFile);
 
     File_State* fileState = useFileState();
     fileState->nowPlaying = fileState->totalFiles;
@@ -128,13 +154,16 @@ void taskPlayMusic(void* filepath)
     resetMusicState();
     notifyScreenRefresh();
 
+    freePlayerBuffer();
     vTaskDelete(taskMusicHandler);
 }
 
 void playSelectedSong()
 {
-    File_State* fileState               = useFileState();
-    TCHAR musicFilename[MAX_LFN_LENGTH] = "0:/";
+    if (allocateMusicBuffer() != 0) return;
+
+    File_State* fileState                     = useFileState();
+    TCHAR       musicFilename[MAX_LFN_LENGTH] = "0:/";
 
     const uint8_t selectedIndex = fileState->filenameBase + fileState->offset;
     strcpy(musicFilename + 3, fileState->filenames[selectedIndex]);
@@ -145,12 +174,13 @@ void playSelectedSong()
 
     fileState->nowPlaying = selectedIndex;
     fileState->paused     = 0;
+
     xTaskCreate(taskPlayMusic, "MusicPlay", 512, musicFilename, 3, &taskMusicHandler);
 }
 
 uint8_t pauseOrResumeSelectedSong()
 {
-    File_State* fileState       = useFileState();
+    File_State*   fileState     = useFileState();
     const uint8_t selectedIndex = fileState->filenameBase + fileState->offset;
 
     if (selectedIndex != fileState->nowPlaying) return 1;
