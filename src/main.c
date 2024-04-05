@@ -31,8 +31,8 @@ static void SystemClock_Config()
 
 void initPlayer()
 {
-    HAL_Init();
     SystemClock_Config();
+    HAL_Init();
 
     initScreen();
     initKeys();

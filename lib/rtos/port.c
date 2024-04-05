@@ -33,8 +33,6 @@
 /* Scheduler includes. */
 #include "FreeRTOS.h"
 #include "task.h"
-#include "stm32f1xx_hal.h"
-#include "lvgl/lvgl.h"
 
 /* For backward compatibility, ensure configKERNEL_INTERRUPT_PRIORITY is
  * defined.  The value should also ensure backward compatibility.
@@ -444,7 +442,6 @@ void xPortSysTickHandler( void )
      * known. */
     portDISABLE_INTERRUPTS();
     {
-        
         /* Increment the RTOS tick. */
         if(xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED && xTaskIncrementTick() != pdFALSE)
         {
@@ -452,8 +449,6 @@ void xPortSysTickHandler( void )
              * the PendSV interrupt.  Pend the PendSV interrupt. */
             portNVIC_INT_CTRL_REG = portNVIC_PENDSVSET_BIT;
         }
-        HAL_IncTick();
-        lv_tick_inc(1);
     }
     portENABLE_INTERRUPTS();
 }
