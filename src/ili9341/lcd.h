@@ -22,9 +22,7 @@
 #error "LCD should not interrupt within FreeRTOS critical zone, please set `LCD_IRQ_PRIORITY` higher than 11"
 #endif
 
-extern lv_display_t* lcd_disp;
-
-HAL_StatusTypeDef lcdInit();
+void initLCD();
 
 void lcd_send_cmd(lv_display_t *disp, const uint8_t *cmd, size_t cmd_size, const uint8_t *param, size_t param_size);
 

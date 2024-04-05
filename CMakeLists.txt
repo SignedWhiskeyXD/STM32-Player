@@ -17,20 +17,11 @@ set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 project(MyPlayer C ASM)
 set(CMAKE_C_STANDARD 11)
 
-#Uncomment for hardware floating point
-#add_compile_definitions(ARM_MATH_CM4;ARM_MATH_MATRIX_CHECK;ARM_MATH_ROUNDING)
-#add_compile_options(-mfloat-abi=hard -mfpu=fpv4-sp-d16)
-#add_link_options(-mfloat-abi=hard -mfpu=fpv4-sp-d16)
-
-#Uncomment for software floating point
-#add_compile_options(-mfloat-abi=soft)
+set(USE_LVGL 0)
 
 add_compile_options(-mcpu=cortex-m3 -mthumb -mthumb-interwork)
 add_compile_options(-ffunction-sections -fdata-sections -fno-common -fmessage-length=0)
 add_link_options(--specs=nosys.specs --specs=nano.specs)
-
-# uncomment to mitigate c++17 absolute addresses warnings
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-register")
 
 # Enable assembler files preprocessing
 add_compile_options($<$<COMPILE_LANGUAGE:ASM>:-x$<SEMICOLON>assembler-with-cpp>)
@@ -52,6 +43,10 @@ endif ()
 include_directories(src lib lib/cmsis lib/hal/include)
 
 add_definitions(-DUSE_HAL_DRIVER -DSTM32F10X_HD -DSTM32F103xE)
+if (USE_LVGL)
+    message("-- LVGL Support Enabled")
+    add_definitions(-DUSE_LVGL)
+endif ()
 
 file(GLOB_RECURSE SOURCES "src/*.*" "lib/hal/*.*" "lib/FatFs/*.*" "lib/cmsis/*.*" "lib/rtos/*.*" "lib/lvgl/src/*.*")
 
@@ -66,15 +61,8 @@ set_target_properties(${PROJECT_NAME}.elf PROPERTIES LINKER_LANGUAGE C)
 
 set(HEX_FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.hex)
 set(BIN_FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.bin)
-set(EIDE_OUT ${CMAKE_SOURCE_DIR}/build/Debug)
-
-file(MAKE_DIRECTORY ${EIDE_OUT})
 
 add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
     COMMAND ${CMAKE_OBJCOPY} -Oihex $<TARGET_FILE:${PROJECT_NAME}.elf> ${HEX_FILE}
     COMMAND ${CMAKE_OBJCOPY} -Obinary $<TARGET_FILE:${PROJECT_NAME}.elf> ${BIN_FILE}
-
-    COMMAND cp $<TARGET_FILE:${PROJECT_NAME}.elf> ${EIDE_OUT}/${PROJECT_NAME}.elf
-    COMMAND cp ${HEX_FILE} ${EIDE_OUT}/${PROJECT_NAME}.hex
-    COMMAND cp ${BIN_FILE} ${EIDE_OUT}/${PROJECT_NAME}.bin
 )

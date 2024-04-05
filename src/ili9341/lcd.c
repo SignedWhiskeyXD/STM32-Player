@@ -3,14 +3,18 @@
 //
 
 #include "lcd.h"
+#include "gui/gui.h"
+#include "lvgl/src/drivers/display/ili9341/lv_ili9341.h"
+#include "rtos/FreeRTOS.h"
 
-#define LCD_CS_HIGH() HAL_GPIO_WritePin(GPIOD, LCD_CS_Pin, GPIO_PIN_SET)
-#define LCD_CS_LOW()  HAL_GPIO_WritePin(GPIOD, LCD_CS_Pin, GPIO_PIN_RESET)
+#define LCD_CS_HIGH()        HAL_GPIO_WritePin(GPIOD, LCD_CS_Pin, GPIO_PIN_SET)
+#define LCD_CS_LOW()         HAL_GPIO_WritePin(GPIOD, LCD_CS_Pin, GPIO_PIN_RESET)
 
-#define LCD_SELECT_DATA()   HAL_GPIO_WritePin(GPIOD, LCD_DCX_Pin, GPIO_PIN_SET)
-#define LCD_SELECT_COMMAND()  HAL_GPIO_WritePin(GPIOD, LCD_DCX_Pin, GPIO_PIN_RESET)
+#define LCD_SELECT_DATA()    HAL_GPIO_WritePin(GPIOD, LCD_DCX_Pin, GPIO_PIN_SET)
+#define LCD_SELECT_COMMAND() HAL_GPIO_WritePin(GPIOD, LCD_DCX_Pin, GPIO_PIN_RESET)
 
-lv_display_t* lcd_disp;
+static lv_display_t* lcd_display;
+static uint8_t*      display_buffer;
 
 static SPI_HandleTypeDef lcdHandle;
 static DMA_HandleTypeDef lcdRxHandle;
@@ -20,11 +24,11 @@ static volatile uint8_t lcdBusy = 0;
 
 HAL_StatusTypeDef lcdDisplayOn()
 {
+    static const uint8_t command = 0x29;
     LCD_CS_LOW();
     LCD_SELECT_COMMAND();
 
-    uint8_t command = 0x29;
-    const HAL_StatusTypeDef ret = HAL_SPI_Transmit(&lcdHandle, &command, 1, 5000);
+    const HAL_StatusTypeDef ret = HAL_SPI_Transmit(&lcdHandle, (uint8_t*) &command, 1, 5000);
 
     LCD_CS_HIGH();
     return ret;
@@ -34,14 +38,14 @@ void lcdDMAInit()
 {
     __HAL_RCC_DMA1_CLK_ENABLE();
 
-    lcdRxHandle.Instance = DMA1_Channel2;
-    lcdRxHandle.Init.Direction = DMA_PERIPH_TO_MEMORY;
-    lcdRxHandle.Init.PeriphInc = DMA_PINC_DISABLE;
-    lcdRxHandle.Init.MemInc = DMA_MINC_ENABLE;
+    lcdRxHandle.Instance                 = DMA1_Channel2;
+    lcdRxHandle.Init.Direction           = DMA_PERIPH_TO_MEMORY;
+    lcdRxHandle.Init.PeriphInc           = DMA_PINC_DISABLE;
+    lcdRxHandle.Init.MemInc              = DMA_MINC_ENABLE;
     lcdRxHandle.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-    lcdRxHandle.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    lcdRxHandle.Init.Mode = DMA_NORMAL;
-    lcdRxHandle.Init.Priority = DMA_PRIORITY_MEDIUM;
+    lcdRxHandle.Init.MemDataAlignment    = DMA_MDATAALIGN_BYTE;
+    lcdRxHandle.Init.Mode                = DMA_NORMAL;
+    lcdRxHandle.Init.Priority            = DMA_PRIORITY_MEDIUM;
     HAL_DMA_Init(&lcdRxHandle);
 
     HAL_NVIC_SetPriority(DMA1_Channel2_IRQn, LCD_IRQ_PRIORITY, 0);
@@ -49,14 +53,14 @@ void lcdDMAInit()
 
     __HAL_LINKDMA(&lcdHandle, hdmarx, lcdRxHandle);
 
-    lcdTxHandle.Instance = DMA1_Channel3;
-    lcdTxHandle.Init.Direction = DMA_MEMORY_TO_PERIPH;
-    lcdTxHandle.Init.PeriphInc = DMA_PINC_DISABLE;
-    lcdTxHandle.Init.MemInc = DMA_MINC_ENABLE;
+    lcdTxHandle.Instance                 = DMA1_Channel3;
+    lcdTxHandle.Init.Direction           = DMA_MEMORY_TO_PERIPH;
+    lcdTxHandle.Init.PeriphInc           = DMA_PINC_DISABLE;
+    lcdTxHandle.Init.MemInc              = DMA_MINC_ENABLE;
     lcdTxHandle.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
-    lcdTxHandle.Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
-    lcdTxHandle.Init.Mode = DMA_NORMAL;
-    lcdTxHandle.Init.Priority = DMA_PRIORITY_MEDIUM;
+    lcdTxHandle.Init.MemDataAlignment    = DMA_MDATAALIGN_HALFWORD;
+    lcdTxHandle.Init.Mode                = DMA_NORMAL;
+    lcdTxHandle.Init.Priority            = DMA_PRIORITY_MEDIUM;
     HAL_DMA_Init(&lcdTxHandle);
 
     HAL_NVIC_SetPriority(DMA1_Channel3_IRQn, LCD_IRQ_PRIORITY, 0);
@@ -65,7 +69,7 @@ void lcdDMAInit()
     __HAL_LINKDMA(&lcdHandle, hdmatx, lcdTxHandle);
 }
 
-HAL_StatusTypeDef lcdInit()
+HAL_StatusTypeDef lcdGPIOInit()
 {
     __HAL_RCC_GPIOA_CLK_ENABLE();
     __HAL_RCC_GPIOD_CLK_ENABLE();
@@ -114,9 +118,30 @@ HAL_StatusTypeDef lcdInit()
     return lcdDisplayOn();
 }
 
-void lcd_send_cmd(lv_display_t *disp, const uint8_t *cmd, size_t cmd_size, const uint8_t *param, size_t param_size)
+void initLCD()
 {
-    while (lcdBusy);
+    lv_init();
+
+    if (lcdGPIOInit() != 0) return;
+
+    lcd_display = lv_ili9341_create(LCD_H_RES, LCD_V_RES, LV_LCD_FLAG_NONE, lcd_send_cmd, lcd_send_color);
+
+    const uint32_t buf_size =
+        LCD_H_RES * LCD_V_RES / 10 * lv_color_format_get_size(lv_display_get_color_format(lcd_display));
+
+    display_buffer = pvPortMalloc(buf_size);
+    if (display_buffer == NULL) return;
+
+    lv_display_set_rotation(lcd_display, LV_DISPLAY_ROTATION_270);
+    lv_display_set_buffers(lcd_display, display_buffer, NULL, buf_size, LV_DISPLAY_RENDER_MODE_PARTIAL);
+
+    hello_gui();
+}
+
+void lcd_send_cmd(lv_display_t* disp, const uint8_t* cmd, size_t cmd_size, const uint8_t* param, size_t param_size)
+{
+    while (lcdBusy)
+        ;
 
     lcdBusy = 1;
 
@@ -126,7 +151,7 @@ void lcd_send_cmd(lv_display_t *disp, const uint8_t *cmd, size_t cmd_size, const
     LCD_SELECT_COMMAND();
     LCD_CS_LOW();
 
-    if(HAL_SPI_Transmit(&lcdHandle, cmd, cmd_size, 5000) == HAL_OK) {
+    if (HAL_SPI_Transmit(&lcdHandle, cmd, cmd_size, 5000) == HAL_OK) {
         LCD_SELECT_DATA();
         HAL_SPI_Transmit(&lcdHandle, param, param_size, 5000);
         LCD_CS_HIGH();
@@ -134,9 +159,10 @@ void lcd_send_cmd(lv_display_t *disp, const uint8_t *cmd, size_t cmd_size, const
     lcdBusy = 0;
 }
 
-void lcd_send_color(lv_display_t *disp, const uint8_t *cmd, size_t cmd_size, uint8_t *param, size_t param_size)
+void lcd_send_color(lv_display_t* disp, const uint8_t* cmd, size_t cmd_size, uint8_t* param, size_t param_size)
 {
-    while (lcdBusy);
+    while (lcdBusy)
+        ;
 
     lcdBusy = 1;
 
@@ -146,7 +172,7 @@ void lcd_send_color(lv_display_t *disp, const uint8_t *cmd, size_t cmd_size, uin
     LCD_SELECT_COMMAND();
     LCD_CS_LOW();
 
-    if(HAL_SPI_Transmit(&lcdHandle, cmd, cmd_size, 5000) == HAL_OK) {
+    if (HAL_SPI_Transmit(&lcdHandle, cmd, cmd_size, 5000) == HAL_OK) {
         LCD_SELECT_DATA();
 
         lcdHandle.Init.DataSize = SPI_DATASIZE_16BIT;
@@ -156,11 +182,11 @@ void lcd_send_color(lv_display_t *disp, const uint8_t *cmd, size_t cmd_size, uin
     }
 }
 
-void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
+void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef* hspi)
 {
     LCD_CS_HIGH();
     lcdBusy = 0;
-    lv_display_flush_ready(lcd_disp);
+    lv_display_flush_ready(lcd_display);
 }
 
 void DMA1_Channel2_IRQHandler()

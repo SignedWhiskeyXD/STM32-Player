@@ -7,30 +7,26 @@
 #include "diskio.h"
 #include "stm32f1xx_hal.h"
 
-#define ATA          0
+#define ATA 0
 
-static HAL_SD_CardInfoTypeDef   sdInfo;
-static SD_HandleTypeDef         sdHandle;
+static HAL_SD_CardInfoTypeDef sdInfo;
+static SD_HandleTypeDef       sdHandle;
 
 void SD_GPIO_init()
 {
     GPIO_InitTypeDef gpioinitstruct = {0};
 
-    /* Enable GPIOs clock */
     __HAL_RCC_GPIOC_CLK_ENABLE();
     __HAL_RCC_GPIOD_CLK_ENABLE();
 
-    /* Common GPIO configuration */
-    gpioinitstruct.Mode      = GPIO_MODE_AF_PP;
-    gpioinitstruct.Pull      = GPIO_PULLUP;
-    gpioinitstruct.Speed     = GPIO_SPEED_FREQ_HIGH;
+    gpioinitstruct.Mode  = GPIO_MODE_AF_PP;
+    gpioinitstruct.Pull  = GPIO_PULLUP;
+    gpioinitstruct.Speed = GPIO_SPEED_FREQ_HIGH;
 
-    /* GPIOC configuration */
     gpioinitstruct.Pin = GPIO_PIN_8 | GPIO_PIN_9 | GPIO_PIN_10 | GPIO_PIN_11 | GPIO_PIN_12;
 
     HAL_GPIO_Init(GPIOC, &gpioinitstruct);
 
-    /* GPIOD configuration */
     gpioinitstruct.Pin = GPIO_PIN_2;
     HAL_GPIO_Init(GPIOD, &gpioinitstruct);
 }
@@ -40,7 +36,7 @@ HAL_StatusTypeDef sdInit()
     SD_GPIO_init();
     __HAL_RCC_SDIO_CLK_ENABLE();
 
-    sdHandle.Instance = SDIO;
+    sdHandle.Instance                 = SDIO;
     sdHandle.Init.ClockEdge           = SDIO_CLOCK_EDGE_RISING;
     sdHandle.Init.ClockBypass         = SDIO_CLOCK_BYPASS_DISABLE;
     sdHandle.Init.ClockPowerSave      = SDIO_CLOCK_POWER_SAVE_DISABLE;
@@ -58,138 +54,72 @@ static void cardStatePolling(HAL_SD_CardStateTypeDef cardState)
     }
 }
 
-DSTATUS disk_status(
-    BYTE pdrv
-)
+DSTATUS disk_status(BYTE pdrv)
 {
-    DSTATUS status = STA_NOINIT;
+    if (pdrv != ATA) return STA_NODISK;
 
-    switch (pdrv) {
-        case ATA: /* SD CARD */
-            status = (HAL_SD_GetCardState(&sdHandle) == HAL_SD_CARD_ERROR) ? STA_NOINIT : 0;
-            break;
-
-        default:
-            status = STA_NODISK;
-            break;
-    }
-    return status;
+    return HAL_SD_GetCardState(&sdHandle) == HAL_SD_CARD_ERROR ? STA_NOINIT : 0;
 }
 
-DSTATUS disk_initialize(
-    BYTE pdrv
-)
+DSTATUS disk_initialize(BYTE pdrv)
 {
-    DSTATUS status = STA_NOINIT;
+    if (pdrv != ATA) return STA_NODISK;
 
-    switch (pdrv) {
-        case ATA: /* SD CARD */ {
-            HAL_StatusTypeDef initStatus = sdInit();
-            initStatus |= HAL_SD_GetCardInfo(&sdHandle, &sdInfo);
+    HAL_StatusTypeDef initStatus = sdInit();
+    initStatus |= HAL_SD_GetCardInfo(&sdHandle, &sdInfo);
 
-            status = initStatus == HAL_OK ? 0 : STA_NOINIT;
-            break;
-        }
-        default:
-            status = STA_NODISK;
-            break;
-    }
-    return status;
+    return initStatus == HAL_OK ? 0 : STA_NOINIT;
 }
 
-DRESULT disk_read(
-    BYTE pdrv,
-    BYTE *buff,
-    DWORD sector,
-    UINT count
-)
+DRESULT disk_read(BYTE pdrv, BYTE* buff, DWORD sector, UINT count)
 {
-    DRESULT status    = RES_PARERR;
+    if (pdrv != ATA) return RES_PARERR;
 
-    switch (pdrv) {
-        case ATA: /* SD CARD */{
-            const HAL_StatusTypeDef readStatus = HAL_SD_ReadBlocks(&sdHandle, buff, sector, count, 2000);
-            status = (readStatus == HAL_OK) ? RES_OK : RES_ERROR;
-            break;
-        }
-        default:
-            break;
-    }
-    return status;
+    const HAL_StatusTypeDef readStatus = HAL_SD_ReadBlocks(&sdHandle, buff, sector, count, 2000);
+    return readStatus == HAL_OK ? RES_OK : RES_ERROR;
 }
 
 #if _USE_WRITE
-DRESULT disk_write(
-    BYTE pdrv,        /* 设备物理编号(0..) */
-    const BYTE *buff, /* 欲写入数据的缓存区 */
-    DWORD sector,     /* 扇区首地址 */
-    UINT count        /* 扇区个数(1..128) */
-)
+DRESULT disk_write(BYTE pdrv, const BYTE* buff, DWORD sector, UINT count)
 {
-    DRESULT status    = RES_PARERR;
+    if (pdrv != ATA) return RES_PARERR;
 
-    switch (pdrv) {
-        case ATA: {
-            const HAL_StatusTypeDef writeStatus = HAL_SD_WriteBlocks(&sdHandle, (uint8_t*) buff, sector, count, 2000);
-            /* 确保上一次的写入操作已完成 */
-            cardStatePolling(HAL_SD_CARD_PROGRAMMING);
-            status = (writeStatus == HAL_OK) ? RES_OK : RES_ERROR;
-            break;
-        }
-        default:
-            break;
-    }
+    const HAL_StatusTypeDef writeStatus = HAL_SD_WriteBlocks(&sdHandle, (uint8_t*) buff, sector, count, 2000);
 
-    return status;
+    /* 确保上一次的写入操作已完成 */
+    cardStatePolling(HAL_SD_CARD_PROGRAMMING);
+    return writeStatus == HAL_OK ? RES_OK : RES_ERROR;
 }
 #endif
 
-
-#if _USE_IOCTL
-DRESULT disk_ioctl(
-    BYTE pdrv,
-    BYTE cmd,  /* 控制指令 */
-    void *buff /* 写入或者读取数据地址指针 */
-)
+#ifdef _USE_IOCTL
+DRESULT disk_ioctl(BYTE pdrv, BYTE cmd, void* buff)
 {
-    DRESULT status = RES_OK;
-    switch (pdrv) {
-        case ATA: /* SD CARD */
-            switch (cmd) {
-                // Get R/W sector size (WORD)
-                case GET_SECTOR_SIZE:
-                    *(WORD *)buff = sdInfo.BlockSize;
-                    break;
-                // Get erase block size in unit of sector (DWORD)
-                case GET_BLOCK_SIZE:
-                    *(DWORD *)buff = 1;
-                    break;
+    if (pdrv != ATA) return RES_PARERR;
 
-                case GET_SECTOR_COUNT:
-                    *(DWORD *)buff = sdInfo.BlockNbr;
-                    break;
-
-                default:
-                    status = RES_ERROR;
-                    break;
-            }
-            status = RES_OK;
+    switch (cmd) {
+        case GET_SECTOR_SIZE:
+            *(WORD*) buff = sdInfo.BlockSize;
             break;
-
+        case GET_BLOCK_SIZE:
+            *(DWORD*) buff = 1;
+            break;
+        case GET_SECTOR_COUNT:
+            *(DWORD*) buff = sdInfo.BlockNbr;
+            break;
         default:
-            status = RES_PARERR;
-            break;
+            return RES_ERROR;
     }
-    return status;
+    return RES_OK;
 }
 #endif
 
 DWORD get_fattime()
 {
-    return ((DWORD)(2015 - 1980) << 25) /* Year 2015 */
-           | ((DWORD)1 << 21)           /* Month 1 */
-           | ((DWORD)1 << 16)           /* Mday 1 */
-           | ((DWORD)0 << 11)           /* Hour 0 */
-           | ((DWORD)0 << 5)            /* Min 0 */
-           | ((DWORD)0 >> 1);           /* Sec 0 */
+    return ((DWORD) (2024 - 1980) << 25) /* Year 2024 */
+           | ((DWORD) 5 << 21)           /* Month 5 */
+           | ((DWORD) 24 << 16)          /* Mday 24 */
+           | ((DWORD) 11 << 11)          /* Hour 11 */
+           | ((DWORD) 45 << 5)           /* Min 45 */
+           | ((DWORD) 14 >> 1);          /* Sec 14 */
 }

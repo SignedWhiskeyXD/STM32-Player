@@ -8,7 +8,7 @@
 #include "vs1053/vs1053.h"
 #include <string.h>
 
-static uint8_t* buffer    = NULL;
+static uint8_t* playerBuffer = NULL;
 static FIL*     musicFile = NULL;
 static int8_t   jumpFlag  = 0;
 
@@ -17,16 +17,16 @@ static TaskHandle_t taskMusicHandler = NULL;
 static uint8_t allocateMusicBuffer()
 {
     /* 已分配内存则无需分配，发生于切歌时 */
-    if (buffer != NULL && musicFile != NULL) return 0;
+    if (playerBuffer != NULL && musicFile != NULL) return 0;
 
     if (musicFile == NULL) {
         if ((musicFile = pvPortMalloc(sizeof(FIL))) == NULL) return 1;
         memset(musicFile, 0, sizeof(FIL));
     }
 
-    if (buffer == NULL) {
-        if ((buffer = pvPortMalloc(BUFSIZE)) == NULL) return 1;
-        memset(buffer, 0, BUFSIZE);
+    if (playerBuffer == NULL) {
+        if ((playerBuffer = pvPortMalloc(BUFSIZE)) == NULL) return 1;
+        memset(playerBuffer, 0, BUFSIZE);
     }
 
     return 0;
@@ -34,10 +34,15 @@ static uint8_t allocateMusicBuffer()
 
 static void freePlayerBuffer()
 {
-    vPortFree(musicFile);
-    vPortFree(buffer);
-    musicFile = NULL;
-    buffer    = NULL;
+    if(musicFile != NULL){
+        vPortFree(musicFile);
+        musicFile = NULL;
+    }
+
+    if(playerBuffer != NULL){
+        vPortFree(playerBuffer);
+        playerBuffer = NULL;
+    }
 }
 
 static void doBufferTransfer(UINT bufferLength)
@@ -45,7 +50,7 @@ static void doBufferTransfer(UINT bufferLength)
     uint16_t offset = 0;
     while (offset < bufferLength) {
         // 如果DREQ没有就绪，不要进行忙等待，应让出CPU
-        if (VS_Send_MusicData(buffer + offset) != 0) {
+        if (VS_Send_MusicData(playerBuffer + offset) != 0) {
             vTaskDelay(5);
             continue;
         }
@@ -61,12 +66,12 @@ static uint32_t getMusicHeaderSize()
         应当从ID3首部中计算出首部长度，得出文件指针偏移量，免得浪费时间
     */
     UINT    bufferUsed;
-    FRESULT res = f_read(musicFile, buffer, 10, &bufferUsed);
+    FRESULT res = f_read(musicFile, playerBuffer, 10, &bufferUsed);
 
-    if (res != FR_OK || bufferUsed != 10 || strncmp((char*) buffer, "ID3", 3) != 0) return 0;
+    if (res != FR_OK || bufferUsed != 10 || strncmp((char*) playerBuffer, "ID3", 3) != 0) return 0;
 
     uint32_t headerLength = 0;
-    for (uint8_t i = 0; i < 4; ++i) headerLength |= (buffer[i + 6] << (21 - i * 7));
+    for (uint8_t i = 0; i < 4; ++i) headerLength |= (playerBuffer[i + 6] << (21 - i * 7));
 
     return headerLength > musicFile->fsize ? 0 : headerLength;
 }
@@ -125,7 +130,7 @@ void taskPlayMusic(void* filepath)
 
         /* 必须屏蔽LCD的DMA传输完成回调中断，不可打断SDIO操作，否则读取会出错 */
         taskENTER_CRITICAL();
-        result = f_read(musicFile, buffer, BUFSIZE, &bufferUsed);
+        result = f_read(musicFile, playerBuffer, BUFSIZE, &bufferUsed);
         taskEXIT_CRITICAL();
 
         doBufferTransfer(bufferUsed);
@@ -209,6 +214,8 @@ void cancelPlayerTask()
 {
     const eTaskState taskState = eTaskGetState(taskMusicHandler);
     if (taskState == eBlocked || taskState == eSuspended) vTaskDelete(taskMusicHandler);
+
+    freePlayerBuffer();
 
     File_State* fileState = useFileState();
     fileState->nowPlaying = fileState->totalFiles;

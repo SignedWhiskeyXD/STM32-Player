@@ -9,7 +9,7 @@
 static const char* taskNameKeyScan  = "TaskKeyScan";
 static const char* taskNameScreen   = "TaskScreen";
 static const char* taskNameCreation = "TaskCreation";
-static const char* taskNameLVGL = "TaskLVGL";
+static const char* taskNameLVGL     = "TaskLVGL";
 
 static TaskHandle_t taskCreationHandler;
 static TaskHandle_t taskKeyScanHandler;
@@ -46,7 +46,10 @@ void taskCreation()
 
     xTaskCreate(taskKeyScan, taskNameKeyScan, 512, NULL, 2, &taskKeyScanHandler);
     xTaskCreate(taskScreenRefresh, taskNameScreen, 512, NULL, 3, &taskScreenHandler);
+
+#ifdef USE_LVGL
     xTaskCreate(taskTFT, taskNameLVGL, 1024, NULL, 4, &taskLVGLHandler);
+#endif
 
     notifyScreenRefresh();
 

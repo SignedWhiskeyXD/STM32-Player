@@ -12,8 +12,8 @@
 
 static char last_record_pathname[NAMESIZE] = "0:/Test_0001.wav";
 
-static FRESULT result;
-static FIL     recordFile; /* file objects */
+static FRESULT result     = FR_OK;
+static FIL*    recordFile = NULL;
 
 static WavHeader     rechead;
 static RecordSetting recset = {
@@ -23,9 +23,9 @@ static RecordSetting recset = {
     6  // 增益
 };
 
-uint32_t sectorSize = 0;
-uint8_t  recording  = 0;
-uint8_t  recordBuffer[TEMPDATA_SIZE];
+uint32_t sectorSize   = 0;
+uint8_t  recording    = 0;
+uint8_t* recordBuffer = NULL;
 
 TaskHandle_t recordTaskHandler;
 
@@ -33,13 +33,13 @@ void stopRecording()
 {
     UINT bw = 0;
 
-    rechead.riff.ChunkSize = sectorSize * RECORD_BUFSIZE + 36;       // 整个文件的大小-8;
-    rechead.data.ChunkSize = sectorSize * RECORD_BUFSIZE;            // 数据大小
-    f_lseek(&recordFile, 0);                                         // 偏移到文件头.
-    result = f_write(&recordFile, &rechead, sizeof(WavHeader), &bw); // 覆写入头数据
-    f_close(&recordFile);
-    VS_HD_Reset();                                                   // 硬复位
-    VS_Soft_Reset();                                                 // 软复位
+    rechead.riff.ChunkSize = sectorSize * RECORD_BUFSIZE + 36;      // 整个文件的大小-8;
+    rechead.data.ChunkSize = sectorSize * RECORD_BUFSIZE;           // 数据大小
+    f_lseek(recordFile, 0);                                         // 偏移到文件头.
+    result = f_write(recordFile, &rechead, sizeof(WavHeader), &bw); // 覆写入头数据
+    f_close(recordFile);
+    VS_HD_Reset();                                                  // 硬复位
+    VS_Soft_Reset();                                                // 软复位
 
     sectorSize = 0;
 }
@@ -47,7 +47,7 @@ void stopRecording()
 void prepareRecorder()
 {
     f_unlink(last_record_pathname);
-    result = f_open(&recordFile, last_record_pathname, FA_CREATE_ALWAYS | FA_WRITE);
+    result = f_open(recordFile, last_record_pathname, FA_CREATE_ALWAYS | FA_WRITE);
     if (result != FR_OK) {
         return;
     }
@@ -74,7 +74,7 @@ void prepareRecorder()
     rechead.data.ChunkSize    = 0;                          // 数据大小,还需要计算
 
     UINT bw = 0;
-    result  = f_write(&recordFile, &rechead, sizeof(WavHeader), &bw); // 预写入头数据
+    result  = f_write(recordFile, &rechead, sizeof(WavHeader), &bw); // 预写入头数据
 }
 
 void onStateRecord()
@@ -94,13 +94,13 @@ void onStateRecord()
             recordBuffer[idx + 1] = regVal >> 8;
             idx += 2;
         }
-        f_lseek(&recordFile, 44 + sectorSize * RECORD_BUFSIZE);
+        f_lseek(recordFile, 44 + sectorSize * RECORD_BUFSIZE);
 
-        result = f_write(&recordFile, recordBuffer, RECORD_BUFSIZE, &bw); // 写入文件
+        result = f_write(recordFile, recordBuffer, RECORD_BUFSIZE, &bw); // 写入文件
 
         if (result) {
-            f_close(&recordFile);
-            return;   // 写入出错.
+            f_close(recordFile);
+            return;
         }
         sectorSize++; // 扇区数增加1
 
@@ -113,15 +113,50 @@ void onStateRecord()
     }
 }
 
+static uint8_t allocateRecorderBuffer()
+{
+    /* 已分配内存则无需分配 */
+    if (recordBuffer != NULL && recordFile != NULL) return 0;
+
+    if (recordFile == NULL) {
+        if ((recordFile = pvPortMalloc(sizeof(FIL))) == NULL) return 1;
+        memset(recordFile, 0, sizeof(FIL));
+    }
+
+    if (recordBuffer == NULL) {
+        if ((recordBuffer = pvPortMalloc(TEMPDATA_SIZE)) == NULL) return 1;
+        memset(recordBuffer, 0, TEMPDATA_SIZE);
+    }
+
+    return 0;
+}
+
+static void freeRecorderBuffer()
+{
+    if (recordFile != NULL) {
+        vPortFree(recordFile);
+        recordFile = NULL;
+    }
+
+    if (recordBuffer != NULL) {
+        vPortFree(recordBuffer);
+        recordBuffer = NULL;
+    }
+}
+
 void taskRecord()
 {
     onStateRecord();
+
+    freeRecorderBuffer();
     vTaskDelete(recordTaskHandler);
 }
 
 void toggleRecord()
 {
     if (recording == 0) {
+        if (allocateRecorderBuffer() != 0) return;
+
         recording = 1;
         xTaskCreate(taskRecord, "taskRecord", 512, NULL, 3, &recordTaskHandler);
     } else {
