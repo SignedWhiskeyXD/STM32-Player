@@ -7,7 +7,6 @@
 #include <string.h>
 
 #define NAMESIZE       30
-#define TEMPDATA_SIZE  4096
 #define RECORD_BUFSIZE 512
 
 static char last_record_pathname[NAMESIZE] = "0:/Test_0001.wav";
@@ -35,9 +34,13 @@ void stopRecording()
 
     rechead.riff.ChunkSize = sectorSize * RECORD_BUFSIZE + 36;      // 整个文件的大小-8;
     rechead.data.ChunkSize = sectorSize * RECORD_BUFSIZE;           // 数据大小
+
+    taskENTER_CRITICAL();
     f_lseek(recordFile, 0);                                         // 偏移到文件头.
-    result = f_write(recordFile, &rechead, sizeof(WavHeader), &bw); // 覆写入头数据
+    f_write(recordFile, &rechead, sizeof(WavHeader), &bw); // 覆写入头数据
     f_close(recordFile);
+    taskEXIT_CRITICAL();
+
     VS_HD_Reset();                                                  // 硬复位
     VS_Soft_Reset();                                                // 软复位
 
@@ -46,13 +49,15 @@ void stopRecording()
 
 void prepareRecorder()
 {
+    taskENTER_CRITICAL();
     f_unlink(last_record_pathname);
     result = f_open(recordFile, last_record_pathname, FA_CREATE_ALWAYS | FA_WRITE);
+    taskEXIT_CRITICAL();
+
     if (result != FR_OK) {
         return;
     }
 
-    memset(recordBuffer, 0, TEMPDATA_SIZE);
     VS_Set_All();
     VS_StartRecord(&recset);
 
@@ -74,7 +79,10 @@ void prepareRecorder()
     rechead.data.ChunkSize    = 0;                          // 数据大小,还需要计算
 
     UINT bw = 0;
+
+    taskENTER_CRITICAL();
     result  = f_write(recordFile, &rechead, sizeof(WavHeader), &bw); // 预写入头数据
+    taskEXIT_CRITICAL();
 }
 
 void onStateRecord()
@@ -83,27 +91,28 @@ void onStateRecord()
 
     while (1) {
         uint16_t regVal = VS_RD_Reg(SPI_HDAT1);
-        uint16_t idx    = 0;
         UINT     bw     = 0;
 
         if (regVal < 256 || regVal >= 896) continue;
 
-        while (idx < RECORD_BUFSIZE) {
+        for(uint16_t idx = 0; idx + 1 < RECORD_BUFSIZE; idx += 2) {
             regVal                = VS_RD_Reg(SPI_HDAT0);
             recordBuffer[idx]     = regVal & 0XFF;
             recordBuffer[idx + 1] = regVal >> 8;
-            idx += 2;
         }
-        f_lseek(recordFile, 44 + sectorSize * RECORD_BUFSIZE);
 
+        taskENTER_CRITICAL();
+        f_lseek(recordFile, 44 + sectorSize * RECORD_BUFSIZE);
         result = f_write(recordFile, recordBuffer, RECORD_BUFSIZE, &bw); // 写入文件
 
-        if (result) {
+        if (result != FR_OK) {
             f_close(recordFile);
+            taskEXIT_CRITICAL();
             return;
         }
-        sectorSize++; // 扇区数增加1
+        taskEXIT_CRITICAL();
 
+        sectorSize++; // 扇区数增加1
         vTaskDelay(10);
 
         if (!recording) {
@@ -124,8 +133,8 @@ static uint8_t allocateRecorderBuffer()
     }
 
     if (recordBuffer == NULL) {
-        if ((recordBuffer = pvPortMalloc(TEMPDATA_SIZE)) == NULL) return 1;
-        memset(recordBuffer, 0, TEMPDATA_SIZE);
+        if ((recordBuffer = pvPortMalloc(RECORD_BUFSIZE)) == NULL) return 1;
+        memset(recordBuffer, 0, RECORD_BUFSIZE);
     }
 
     return 0;

@@ -17,7 +17,7 @@ set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 project(MyPlayer C ASM)
 set(CMAKE_C_STANDARD 11)
 
-set(USE_LVGL 0)
+set(USE_LVGL 1)
 
 add_compile_options(-mcpu=cortex-m3 -mthumb -mthumb-interwork)
 add_compile_options(-ffunction-sections -fdata-sections -fno-common -fmessage-length=0)

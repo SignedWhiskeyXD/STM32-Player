@@ -50,7 +50,7 @@ HAL_StatusTypeDef sdInit()
 static void cardStatePolling(HAL_SD_CardStateTypeDef cardState)
 {
     while (HAL_SD_GetCardState(&sdHandle) == cardState) {
-        HAL_Delay(2);
+        for(uint16_t i = 0; i < 1000; ++i);
     }
 }
 
