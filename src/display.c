@@ -4,6 +4,8 @@
 #include "states/states.h"
 #include <stdio.h>
 
+extern uint8_t recording;
+
 void initScreen()
 {
     OLED_Init();
@@ -74,7 +76,8 @@ void showProgress()
 void showRecorder()
 {
     OLED_ShowPaddingString(0, 0, "Recorder", 16);
-    for (uint8_t i = 1; i < 4; ++i) OLED_ShowPaddingString(i, 0, "", 16);
+    OLED_ShowPaddingString(1, 0, recording ? "REC" : "IDLE", 16);
+    for (uint8_t i = 2; i < 4; ++i) OLED_ShowPaddingString(i, 0, "", 16);
 }
 
 void showError()

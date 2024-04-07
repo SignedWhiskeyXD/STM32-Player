@@ -13,8 +13,11 @@
 #define LCD_SELECT_DATA()    HAL_GPIO_WritePin(GPIOD, LCD_DCX_Pin, GPIO_PIN_SET)
 #define LCD_SELECT_COMMAND() HAL_GPIO_WritePin(GPIOD, LCD_DCX_Pin, GPIO_PIN_RESET)
 
+#define LCD_BUFF_SIZE        (2 * LCD_H_RES * LCD_V_RES / 10)
+
+static uint8_t display_buffer[LCD_BUFF_SIZE];
+
 static lv_display_t* lcd_display;
-static uint8_t*      display_buffer;
 
 static SPI_HandleTypeDef lcdHandle;
 static DMA_HandleTypeDef lcdRxHandle;
@@ -126,14 +129,8 @@ void initLCD()
 
     lcd_display = lv_ili9341_create(LCD_H_RES, LCD_V_RES, LV_LCD_FLAG_NONE, lcd_send_cmd, lcd_send_color);
 
-    const uint32_t buf_size =
-        LCD_H_RES * LCD_V_RES / 10 * lv_color_format_get_size(lv_display_get_color_format(lcd_display));
-
-    display_buffer = pvPortMalloc(buf_size);
-    if (display_buffer == NULL) return;
-
-    lv_display_set_rotation(lcd_display, LV_DISPLAY_ROTATION_270);
-    lv_display_set_buffers(lcd_display, display_buffer, NULL, buf_size, LV_DISPLAY_RENDER_MODE_PARTIAL);
+    lv_display_set_rotation(lcd_display, LV_DISPLAY_ROTATION_180);
+    lv_display_set_buffers(lcd_display, display_buffer, NULL, LCD_BUFF_SIZE, LV_DISPLAY_RENDER_MODE_PARTIAL);
 
     hello_gui();
 }

@@ -180,7 +180,7 @@ void playSelectedSong()
     fileState->nowPlaying = selectedIndex;
     fileState->paused     = 0;
 
-    xTaskCreate(taskPlayMusic, "MusicPlay", 512, musicFilename, 3, &taskMusicHandler);
+    xTaskCreate(taskPlayMusic, "MusicPlay", 128, musicFilename, 3, &taskMusicHandler);
 }
 
 uint8_t pauseOrResumeSelectedSong()

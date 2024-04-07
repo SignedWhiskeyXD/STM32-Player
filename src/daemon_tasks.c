@@ -35,8 +35,8 @@ void taskScreenRefresh()
 void taskTFT()
 {
     while (1) {
-        lv_timer_handler();
-        vTaskDelay(100);
+        const uint32_t delay = lv_timer_handler();
+        vTaskDelay(delay);
     }
 }
 
@@ -44,8 +44,8 @@ void taskCreation()
 {
     taskENTER_CRITICAL();
 
-    xTaskCreate(taskKeyScan, taskNameKeyScan, 512, NULL, 2, &taskKeyScanHandler);
-    xTaskCreate(taskScreenRefresh, taskNameScreen, 512, NULL, 3, &taskScreenHandler);
+    xTaskCreate(taskKeyScan, taskNameKeyScan, 128, NULL, 2, &taskKeyScanHandler);
+    xTaskCreate(taskScreenRefresh, taskNameScreen, 128, NULL, 3, &taskScreenHandler);
 
 #ifdef USE_LVGL
     xTaskCreate(taskTFT, taskNameLVGL, 1024, NULL, 4, &taskLVGLHandler);

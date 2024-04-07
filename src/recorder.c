@@ -166,8 +166,10 @@ void toggleRecord()
     if (recording == 0) {
         if (allocateRecorderBuffer() != 0) return;
 
+        const BaseType_t taskStatus = xTaskCreate(taskRecord, "taskRecord", 128, NULL, 3, &recordTaskHandler);
+        if(taskStatus != pdPASS) return;
+
         recording = 1;
-        xTaskCreate(taskRecord, "taskRecord", 512, NULL, 3, &recordTaskHandler);
     } else {
         recording = 0;
     }
