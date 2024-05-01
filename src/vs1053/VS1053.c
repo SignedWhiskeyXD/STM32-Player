@@ -3,7 +3,7 @@
 #include <string.h>
 
 // VS1053默认设置参数
-static VS_Settings vs1053_settings = {
+VS_Settings vs1053_settings = {
     220, // 音量:220
     6,   // 低音上线 60Hz
     15,  // 低音提升 15dB

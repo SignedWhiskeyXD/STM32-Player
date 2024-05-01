@@ -17,8 +17,6 @@ set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 project(MyPlayer C ASM)
 set(CMAKE_C_STANDARD 11)
 
-set(USE_LVGL 1)
-
 add_compile_options(-mcpu=cortex-m3 -mthumb -mthumb-interwork)
 add_compile_options(-ffunction-sections -fdata-sections -fno-common -fmessage-length=0)
 add_link_options(--specs=nosys.specs --specs=nano.specs)
@@ -43,12 +41,8 @@ endif ()
 include_directories(src lib lib/cmsis lib/hal/include)
 
 add_definitions(-DUSE_HAL_DRIVER -DSTM32F10X_HD -DSTM32F103xE)
-if (USE_LVGL)
-    message("-- LVGL Support Enabled")
-    add_definitions(-DUSE_LVGL)
-endif ()
 
-file(GLOB_RECURSE SOURCES "src/*.*" "lib/hal/*.*" "lib/FatFs/*.*" "lib/cmsis/*.*" "lib/rtos/*.*" "lib/lvgl/src/*.*")
+file(GLOB_RECURSE SOURCES "src/*.*" "lib/hal/*.*" "lib/FatFs/*.*" "lib/cmsis/*.*" "lib/rtos/*.*")
 
 set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/STM32F103VETX_FLASH.ld)
 

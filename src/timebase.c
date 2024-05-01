@@ -5,10 +5,6 @@
 #include "stm32f1xx_hal.h"
 #include "stm32f1xx_hal_tim.h"
 
-#ifdef USE_LVGL
-#include "lvgl/lvgl.h"
-#endif
-
 static TIM_HandleTypeDef htim1;
 
 HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
@@ -71,7 +67,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
     if (htim->Instance == TIM1) {
         HAL_IncTick();
-        lv_tick_inc(1);
     }
 }
 

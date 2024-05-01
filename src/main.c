@@ -6,10 +6,6 @@
 #include "stm32f1xx_hal.h"
 #include "vs1053/vs1053.h"
 
-#ifdef USE_LVGL
-#include "ili9341/lcd.h"
-#endif
-
 static void SystemClock_Config()
 {
     RCC_OscInitTypeDef RCC_OscInitStruct = {.OscillatorType      = RCC_OSCILLATORTYPE_HSI,
@@ -58,10 +54,6 @@ void initPlayer()
     VS_Soft_Reset();
 
     setGlobalState(BROWSING_MENU);
-
-#ifdef USE_LVGL
-    initLCD();
-#endif
 }
 
 int main()
