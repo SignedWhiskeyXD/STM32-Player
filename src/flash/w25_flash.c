@@ -38,6 +38,8 @@ void FLASH_GPIO_Init()
     HAL_GPIO_Init(FLASH_CS_GPIO_PORT, &GPIO_InitStruct);
 }
 
+uint32_t flashID = 0;
+
 void SPI_FLASH_Init(void)
 {
     FLASH_GPIO_Init();
@@ -66,7 +68,7 @@ void SPI_FLASH_Init(void)
 
     __HAL_SPI_ENABLE(&spiHandle);
 
-    SPI_FLASH_ReadID();
+    flashID = SPI_FLASH_ReadID();
 }
 
 void SPI_FLASH_BufferRead(uint8_t *pBuffer, uint32_t ReadAddr, uint16_t NumByteToRead)

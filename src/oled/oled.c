@@ -5,10 +5,10 @@
 #include "ascii_font.h"
 
 #define OLED_SCL_GPIOX      GPIOD
-#define OLED_SCL_PIN        GPIO_PIN_4
+#define OLED_SCL_PIN        GPIO_PIN_10
 
 #define OLED_SDA_GPIOX      GPIOD
-#define OLED_SDA_PIN        GPIO_PIN_5
+#define OLED_SDA_PIN        GPIO_PIN_12
 
 #define OLED_W_SCL(x)		HAL_GPIO_WritePin(OLED_SCL_GPIOX, OLED_SCL_PIN, (GPIO_PinState)x)
 #define OLED_W_SDA(x)		HAL_GPIO_WritePin(OLED_SDA_GPIOX, OLED_SDA_PIN, (GPIO_PinState)x)

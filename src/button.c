@@ -27,16 +27,21 @@ void initKeys()
 
     __HAL_RCC_GPIOA_CLK_ENABLE();
     __HAL_RCC_GPIOB_CLK_ENABLE();
+    __HAL_RCC_GPIOD_CLK_ENABLE();
+
     gpioDef.Mode  = GPIO_MODE_INPUT;
     gpioDef.Pull  = GPIO_PULLUP;
-    gpioDef.Pin   = GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7;
+    gpioDef.Pin   = GPIO_PIN_4 | GPIO_PIN_8;
     gpioDef.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(GPIOB, &gpioDef);
+
+    gpioDef.Pin = GPIO_PIN_1 | GPIO_PIN_5;
+    HAL_GPIO_Init(GPIOD, &gpioDef);
 
     gpioDef.Pin = GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_11;
     HAL_GPIO_Init(GPIOA, &gpioDef);
 
-    for (uint8_t i = 0; i < BUTTON_NUM; ++i) btnHistory[i] = 1;
+    for (uint8_t i = 0; i < (uint8_t) BUTTON_NUM; ++i) btnHistory[i] = 1;
 }
 
 void setKeyState(Button btn, GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin)
@@ -48,10 +53,10 @@ void setKeyState(Button btn, GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin)
 
 void scanKeys()
 {
-    setKeyState(BUTTON_UP, GPIOB, GPIO_PIN_6);
-    setKeyState(BUTTON_DOWN, GPIOB, GPIO_PIN_7);
-    setKeyState(BUTTON_CONFIRM, GPIOB, GPIO_PIN_5);
-    setKeyState(BUTTON_CANCEL, GPIOA, GPIO_PIN_11);
+    setKeyState(BUTTON_UP, GPIOB, GPIO_PIN_8);
+    setKeyState(BUTTON_DOWN, GPIOB, GPIO_PIN_4);
+    setKeyState(BUTTON_CONFIRM, GPIOD, GPIO_PIN_1);
+    setKeyState(BUTTON_CANCEL, GPIOD, GPIO_PIN_5);
     setKeyState(BUTTON_LEFT, GPIOA, GPIO_PIN_3);
     setKeyState(BUTTON_RIGHT, GPIOA, GPIO_PIN_2);
 
@@ -62,7 +67,7 @@ void scanKeys()
     if (btnFalling[BUTTON_LEFT]) onButtonLeftClicked();
     if (btnFalling[BUTTON_RIGHT]) onButtonRightClicked();
 
-    for (uint8_t i = 0; i < BUTTON_NUM; ++i) {
+    for (uint8_t i = 0; i < (uint8_t) BUTTON_NUM; ++i) {
         if (btnFalling[i]) {
             notifyScreenRefresh();
             return;

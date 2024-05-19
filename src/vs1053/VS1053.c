@@ -227,9 +227,9 @@ void VS_WR_Cmd(uint8_t address, uint16_t data)
     VS_XDCS_HIGH();
     VS_XCS_LOW();
     VS_SPI_SendByte(VS_WRITE_COMMAND); // 发送VS10XX的写命令
-    VS_SPI_SendByte(address);          // 地址
-    VS_SPI_SendByte(data >> 8);        // 发送高八位
-    VS_SPI_SendByte(data);             // 第八位
+    VS_SPI_SendByte(address);          // 寄存器地址
+    VS_SPI_SendByte(data >> 8);        // 数据字高8位
+    VS_SPI_SendByte(data);             // 数据字低8位
     VS_XCS_HIGH();
     VS_SPI_SpeedHigh();
 }
