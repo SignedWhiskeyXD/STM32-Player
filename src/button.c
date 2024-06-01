@@ -38,7 +38,7 @@ void initKeys()
     gpioDef.Pin = GPIO_PIN_1 | GPIO_PIN_5;
     HAL_GPIO_Init(GPIOD, &gpioDef);
 
-    gpioDef.Pin = GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_11;
+    gpioDef.Pin = GPIO_PIN_10 | GPIO_PIN_14;
     HAL_GPIO_Init(GPIOA, &gpioDef);
 
     for (uint8_t i = 0; i < (uint8_t) BUTTON_NUM; ++i) btnHistory[i] = 1;
@@ -57,8 +57,8 @@ void scanKeys()
     setKeyState(BUTTON_DOWN, GPIOB, GPIO_PIN_4);
     setKeyState(BUTTON_CONFIRM, GPIOD, GPIO_PIN_1);
     setKeyState(BUTTON_CANCEL, GPIOD, GPIO_PIN_5);
-    setKeyState(BUTTON_LEFT, GPIOA, GPIO_PIN_3);
-    setKeyState(BUTTON_RIGHT, GPIOA, GPIO_PIN_2);
+    setKeyState(BUTTON_LEFT, GPIOA, GPIO_PIN_10);
+    setKeyState(BUTTON_RIGHT, GPIOA, GPIO_PIN_14);
 
     if (btnFalling[BUTTON_UP]) onButtonUpClicked();
     if (btnFalling[BUTTON_DOWN]) onButtonDownClicked();
