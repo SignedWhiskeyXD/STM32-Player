@@ -56,50 +56,11 @@ void initPlayer()
     setGlobalState(BROWSING_MENU);
 }
 
-#include "rtos/FreeRTOS.h"
-#include "rtos/task.h"
-#include <string.h>
-
-const uint16_t STACK_DEPTH   = 2048;
-TaskHandle_t   testHandle    = NULL;
-UBaseType_t    water_marks[11];
-
-void local_var(uint16_t count)
-{
-    uint32_t not_used[count];
-    memset(not_used, 0xFF, sizeof (uint32_t) * count);
-}
-
-void task_local_var()
-{
-    for (uint8_t i = 0; i <= 10; ++i) {
-        local_var(i * 100);
-        water_marks[i] = STACK_DEPTH - uxTaskGetStackHighWaterMark(testHandle);
-    }
-    vTaskDelete(testHandle);
-}
-
-void recursing(uint16_t depth)
-{
-    static uint16_t call_count = 0;
-
-    if (call_count == depth) {
-        call_count = 0;
-        return;
-    }
-
-    ++call_count;
-    recursing(depth);
-}
 int main()
 {
     initPlayer();
 
     launchDaemonTasks();
-
-//    xTaskCreate(task_local_var, "task_local_var", STACK_DEPTH, NULL, 2, &testHandle);
-//
-//    vTaskStartScheduler();
 
     while (1) {}
 }
