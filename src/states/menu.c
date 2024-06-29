@@ -12,7 +12,7 @@ MenuItem getSelectedMenuItem()
 
 void moveMenuPointer(int8_t delta)
 {
-    if (delta > 0 && selectedMenuItem != MENU_DRIVE)
+    if (delta > 0 && selectedMenuItem != MENU_RECORDER)
         ++selectedMenuItem;
     else if (delta < 0 && selectedMenuItem != MENU_PLAYER)
         --selectedMenuItem;

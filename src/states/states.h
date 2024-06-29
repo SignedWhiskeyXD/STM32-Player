@@ -24,7 +24,7 @@ MyError getLastError();
 
 void setLastError(MyError error);
 
-#include "fileOps.h"
+#include "file_ops.h"
 #include "menu.h"
 #include "music.h"
 

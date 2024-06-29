@@ -5,8 +5,7 @@
 
 typedef enum {
     MENU_PLAYER,
-    MENU_RECORDER,
-    MENU_DRIVE
+    MENU_RECORDER
 } MenuItem;
 
 MenuItem getSelectedMenuItem();
